@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>코드 숨기기 앱</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f7;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .color-picker-container {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f8f8f8;
+        }
+        .color-picker-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        #transparentColor {
+            width: 100px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+        }
+        .tab-button.active {
+            background-color: #007aff;
+            color: white;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .button {
+            background-color: #007aff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .button:hover {
+            background-color: #0055ff;
+        }
+        .drop-zone {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        .preview-image {
+            max-width: 300px;
+            margin: 10px 0;
+        }
+        .error {
+            color: #ff3b30;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #ffe5e5;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="showTab('encode')">코드 숨기기</button>
+            <button class="tab-button" onclick="showTab('decode')">코드 추출하기</button>
+        </div>
+
+        <div id="encodeTab">
+            <h3>코드를 이미지에 숨기기</h3>
+            <textarea id="codeInput" placeholder="여기에 숨기고 싶은 JavaScript 코드를 입력하세요..."></textarea>
+            
+            <div class="color-picker-container">
+                <label class="color-picker-label">투명 영역 기본 색상:</label>
+                <input type="color" id="transparentColor" value="#ffffff">
+            </div>
+
+            <div class="drop-zone" id="encodeDropZone" onclick="document.getElementById('encodeFileInput').click()">
+                클릭하여 이미지를 선택하거나 여기에 드래그하세요
+            </div>
+            <input type="file" id="encodeFileInput" style="display: none" accept="image/png" onchange="handleEncodeFileSelect(event)">
+            <div id="imagePreview"></div>
+            
+            <button class="button" onclick="hideCode()">코드 숨기기</button>
+            <div id="encodeResult"></div>
+        </div>
+
+        <div id="decodeTab" style="display: none;">
+            <h3>이미지에서 코드 추출하기</h3>
+            <div class="drop-zone" id="decodeDropZone" onclick="document.getElementById('decodeFileInput').click()">
+                클릭하여 이미지를 선택하거나 여기에 드래그하세요
+            </div>
+            <input type="file" id="decodeFileInput" style="display: none" accept="image/png" onchange="handleDecodeFileSelect(event)">
+            <div id="decodeResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedImage = null;
+
+        function preprocessCode(code) {
+            const minifiedCode = code.replace(/\s+/g, ' ').trim();
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(minifiedCode);
+            const binaryString = Array.from(bytes)
+                .map(byte => byte.toString(2).padStart(8, '0'))
+                .join('');
+            const paddingLength = 8 - (binaryString.length % 8);
+            const paddedBinary = binaryString + '0'.repeat(paddingLength);
+            const lengthInfo = binaryString.length.toString(2).padStart(32, '0');
+            
+            return {
+                binary: paddedBinary,
+                lengthInfo: lengthInfo,
+                originalLength: binaryString.length
+            };
+        }
+
+        function postprocessCode(binaryData, originalLength) {
+            const trimmedBinary = binaryData.slice(0, originalLength);
+            const bytes = new Uint8Array(
+                trimmedBinary.match(/.{8}/g)
+                    .map(byte => parseInt(byte, 2))
+            );
+            return new TextDecoder().decode(bytes);
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (tabName === 'encode') {
+                document.getElementById('encodeTab').style.display = 'block';
+                document.getElementById('decodeTab').style.display = 'none';
+                document.querySelector('button[onclick="showTab(\'encode\')"]').classList.add('active');
+            } else {
+                document.getElementById('encodeTab').style.display = 'none';
+                document.getElementById('decodeTab').style.display = 'block';
+                document.querySelector('button[onclick="showTab(\'decode\')"]').classList.add('active');
+            }
+        }
+
+        function handleEncodeFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                previewImage(file);
+            }
+        }
+
+        function previewImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedImage = new Image();
+                selectedImage.onload = function() {
+                    const previewDiv = document.getElementById('imagePreview');
+                    previewDiv.innerHTML = `
+                        <h4>선택된 이미지:</h4>
+                        <img src="${e.target.result}" class="preview-image" alt="Selected image">
+                    `;
+                };
+                selectedImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function hideCode() {
+            const code = document.getElementById('codeInput').value;
+            if (!code) {
+                alert('코드를 입력해주세요!');
+                return;
+            }
+
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const processedCode = preprocessCode(code);
+
+                if (selectedImage) {
+                    canvas.width = selectedImage.width;
+                    canvas.height = selectedImage.height;
+                    ctx.drawImage(selectedImage, 0, 0);
+                } else {
+                    const size = Math.ceil(Math.sqrt((processedCode.binary.length / 3) + 128));
+                    canvas.width = size;
+                    canvas.height = size;
+                }
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                const transparentColor = hexToRgb(document.getElementById('transparentColor').value);
+
+                // 길이 정보 저장
+                for (let i = 0; i < 32; i++) {
+                    const pixelIndex = i * 4;
+                    if (data[pixelIndex + 3] === 0) {
+                        data[pixelIndex] = transparentColor.r;
+                        data[pixelIndex + 1] = transparentColor.g;
+                        data[pixelIndex + 2] = transparentColor.b;
+                        data[pixelIndex + 3] = 255;
+                    }
+                    data[pixelIndex] = (data[pixelIndex] & 0xFE) | parseInt(processedCode.lengthInfo[i]);
+                }
+
+                // 실제 데이터 저장
+                let binaryIndex = 0;
+                for (let i = 128; i < data.length && binaryIndex < processedCode.binary.length; i += 4) {
+                    if (data[i + 3] === 0) {
+                        data[i] = transparentColor.r;
+                        data[i + 1] = transparentColor.g;
+                        data[i + 2] = transparentColor.b;
+                        data[i + 3] = 255;
+                    }
+                    for (let j = 0; j < 3 && binaryIndex < processedCode.binary.length; j++) {
+                        data[i + j] = (data[i + j] & 0xFE) | parseInt(processedCode.binary[binaryIndex]);
+                        binaryIndex++;
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+                
+                const resultDiv = document.getElementById('encodeResult');
+                resultDiv.innerHTML = `
+                    <h4>생성된 이미지:</h4>
+                    <img src="${canvas.toDataURL('image/png')}" class="preview-image" alt="Encoded image">
+                    <button class="button" onclick="downloadImage('${canvas.toDataURL('image/png')}')">
+                        이미지 다운로드
+                    </button>
+                `;
+            } catch (error) {
+                document.getElementById('encodeResult').innerHTML = `
+                    <div class="error">오류가 발생했습니다: ${error.message}</div>
+                `;
+            }
+        }
+
+        function downloadImage(dataUrl) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = 'encoded-image.png';
+            link.click();
+        }
+
+        function handleDecodeFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                extractCode(file);
+            }
+        }
+
+        function extractCode(imageFile) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imageData.data;
+                        
+                        let lengthBinary = '';
+                        for (let i = 0; i < 32; i++) {
+                            lengthBinary += data[i * 4] & 1;
+                        }
+                        const originalLength = parseInt(lengthBinary, 2);
+                        
+                        let binaryCode = '';
+                        let bitsRead = 0;
+                        
+                        for (let i = 128; i < data.length && bitsRead < originalLength; i += 4) {
+                            for (let j = 0; j < 3 && bitsRead < originalLength; j++) {
+                                binaryCode += data[i + j] & 1;
+                                bitsRead++;
+                            }
+                        }
+                        
+                        const extractedCode = postprocessCode(binaryCode, originalLength);
+                        document.getElementById('decodeResult').innerHTML = `
+                            <h4>추출된 코드:</h4>
+                            <textarea readonly>${extractedCode}</textarea>
+                        `;
+                    } catch (error) {
+                        document.getElementById('decodeResult').innerHTML = `
+                            <div class="error">코드 추출 중 오류가 발생했습니다: ${error.message}</div>
+                        `;
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(imageFile);
+        }
+
+        // 드래그 앤 드롭 이벤트 핸들러
+        ['encodeDropZone', 'decodeDropZone'].forEach(id => {
+            const dropZone = document.getElementById(id);
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#007aff';
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.style.borderColor = '#ccc';
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#ccc';
+                const file = e.dataTransfer.files[0];
+                if (file && file.type === 'image/png') {
+                    if (id === 'encodeDropZone') {
+                        previewImage(file);
+                    } else {
+                        extractCode(file);
+                    }
+                } else {
+                    alert('PNG 이미지 파일만 사용할 수 있습니다!');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

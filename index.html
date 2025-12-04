@@ -1,106 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-    <title>OVJECT™</title>
-    <meta http-equiv="Content-Type" content="text/html">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no">
-	<meta name="title" content="OVJECT™">
-    <meta name="description" content="We do what we want to do and find something interesting.">
-    <meta name="author" content="Junyoung Lee">
-	<meta name="keywords" content="오브젝트, 오브젝트스튜디오, 오브젝트 디자인">
-    <meta name="theme-color" content="#000">
-    <meta name="msapplication-navbutton-color" content="#000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta property="og:url" content="http://ovject.com" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Indie Studio OVJECT™" />
-    <meta property="og:description" content="We do what we want to do and find something interesting." />
-    <meta property="og:image" content="https://ovject.github.io/Website/img/ogLOGO.png">
-    <meta property="og:image:width" content="800">
-    <meta property="og:image:height" content="400">
-    <meta property="og:image:type" content="image/png">
-    <link rel="apple-touch-icon" href="img/icon180.png">
-    <link rel="icon" href="img/icon180.png">
-    <link rel="stylesheet" href="files/modern-normalize.min.css">
-    <link rel="stylesheet" href="files/screen.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com"> 
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
-    <script src="files/jquery-3.1.1.min.js"></script>
-    <script src="files/jquery.easing.min.js"></script>
-    <script src="files/isotope.pkgd.min.js"></script>
-    <script src="files/packery-mode.pkgd.min.js"></script>
-    <script src="files/slick.min.js"></script>
-    <script src="files/jquery.plate.js"></script>
-    <script src="files/jquery.flip.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="OVJECT Portfolio - Interactive masonry grid showcasing games, apps, and design projects">
+  <title>OVJECT</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="Container">
-    <div class="Cell Hover Rounded">
-        <div class="Flip">
-            <div class="front">
-                <img class="Thumb" src="img/LOGO.png">
-            </div>
-            <div class="back" style="background-color:#000">
-                <img class="Thumb" src="img/LOGO_typo.png">
-            </div>
-        </div>
+  <div id="overlay"></div>
+
+  <div id="modal-container" class="modal-container" aria-modal="true" role="dialog" aria-hidden="true">
+    <div class="modal-content"></div>
+    <button class="close-button" aria-label="Close modal">&times;</button>
+  </div>
+  
+  <header>
+    <!-- <img src="./img/ovject_small.png" alt="OVJECT Logo" class="protect Logo"> -->
+    <span class="Logo-Text">OVJECT<span class="tm-mark">™</span></span>
+    <nav class="category-menu" role="navigation" aria-label="카테고리 필터">
+      <button class="category-button active" data-category="all" aria-pressed="true">All</button>
+    </nav>
+  </header>
+  
+  <main class="grid-container" role="main" aria-label="프로젝트 갤러리">
+    <div class="grid-inner">
     </div>
-    <div class="Cell Hover Rounded">
-        <div class="Flip">
-            <div class="front">
-            <img class="Thumb no-select" src="images/03_thumb.gif">
-            </div>
-            <div class="back" style="background-color:#ffdc49">
-                <div class="Center Appstore Black">
-                    <p class="Title"><b>PITAPATO</b></p>
-                    <span class="Sub">PITAPATO is a luck-based game for Family</span><br><br><b>-</b><br>
-                    <a href="https://play.google.com/store/apps/details?id=com.OVJECT.Pitapato" target="_blank"><div class="BTN">GET IT ON Google Play</div></a>
-                    <a href="https://apps.apple.com/us/app/pitapato/id1505739502" target="_blank"><div class="BTN">Download on the App Store</div></a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="Cell H2 W2 Hover Rounded"><a class="DUMMY" href="https://marpple.shop/ovject/products/7955602" target="_blank"></a><img class="Thumb no-select" src="images/01_thumb.png"></div>
-    <div class="Cell W2 Hover Rounded">
-    	<div class='marquee'>
-            <span><a href="https://galaxy.store/ovject" target="_blank"> Galaxy only. Theme Store. Galaxy only. Theme Store. Galaxy only. Theme Store.</a></span>
-            <span><a href="https://galaxy.store/ovject" target="_blank"> Galaxy only. Theme Store. Galaxy only. Theme Store. Galaxy only. Theme Store.</a></span>
-            <span><a href="https://galaxy.store/ovject" target="_blank"> Galaxy only. Theme Store. Galaxy only. Theme Store. Galaxy only. Theme Store.</a></span>
-            <span><a href="https://galaxy.store/ovject" target="_blank"> Galaxy only. Theme Store. Galaxy only. Theme Store. Galaxy only. Theme Store.</a></span>
-        </div>
-    </div>
-    <div class="Cell Hover Rounded">
-        <div class="Flip">
-            <div class="front">
-            <img class="Thumb no-select" src="images/04_thumb.gif">
-            </div>
-            <div class="back" style="background-color:#000">
-                <div class="Center Appstore">
-                    <p class="Title"><b>Croco Roulette</b></p>
-                    <span class="Sub">Croco Roulette is a luck-based game for Family</span><br><br><b>-</b><br>
-                    <a href="https://play.google.com/store/apps/details?id=com.OVJECT.CrocoR" target="_blank"><div class="BTN">GET IT ON Google Play</div></a>
-                    <a href="https://apps.apple.com/us/app/croco-croco-roulette/id1501486372" target="_blank"><div class="BTN">Download on the App Store</div></a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="Cell Hover Rounded"><a class="DUMMY" href="https://opensea.io/ovject" target="_blank"></a><img class="Thumb no-select" src="images/06_thumb.gif"></div>
-    <div class="Cell Hover Rounded"><img class="Thumb no-select" src="images/02_thumb.jpg"></div>
-    <div class="Cell Hover Rounded"><img class="Thumb no-select" src="images/07_thumb.png"></div>
-    <div class="Cell Hover Rounded">
-            <div class="SNS">test</div>
-    </div>
-</div>
-<div class="Footer">
-    <div class="Left">© 2019 OVJECT™</div>
-    <div class="Right"><a href="mailto:hello@ovject.com" target="_blank">hello@ovject.com</a>&nbsp&nbsp/&nbsp
-    				   <a href="https://www.instagram.com/ovject.studio" target="_blank">Instagram</a>&nbsp&nbsp/&nbsp
-    				   <a href="https://www.facebook.com/ovject" target="_blank">Facebook</div>
-</div>
+  </main>
+  
+  <script src="marked.min.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
-<script src="files/default.js"></script>
 </html>

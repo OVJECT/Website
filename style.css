@@ -1,56 +1,615 @@
-html, body{
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-}
-#camera, #camera--view, #camera--sensor, #camera--output{
-    position: fixed;
-    height: 100%;
-    width: 100%;
-    object-fit: cover;
-}
-#camera--view, #camera--sensor, #camera--output{
-    transform: scaleX(-1);
-    filter: FlipH;
-}
-#camera--trigger{
-    width: 200px;
-    background-color: black;
-    color: white;
-    font-size: 16px;
-    border-radius: 30px;
-    border: none;
-    padding: 15px 20px;
-    text-align: center;
-    box-shadow: 0 5px 10px 0 rgba(0,0,0,0.2);
-    position: fixed;
-    bottom: 30px;
-    left: calc(50% - 100px);
-}
-.taken{
-    height: 100px!important;
-    width: 100px!important;
-    transition: all 0.5s ease-in;
-    border: solid 3px white;
-    box-shadow: 0 5px 10px 0 rgba(0,0,0,0.2);
-    top: 20px;
-    right: 20px;
-    z-index: 2;
+/* Teenage Engineering / Rabbit R1 Style Overhaul */
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('webfonts/JetBrainsMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
 }
 
-.MPP{
-position: fixed;
-width:100%;
-height:100%;
-overflow:hidden;
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('webfonts/JetBrainsMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
 }
-.LINE{
-width:100%;
-background:#000;
-height:10px;
-margin-bottom:3px;
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('webfonts/JetBrainsMono-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
 }
-.Footer{
-margin-top:-42px;
+
+:root {
+  /* TE Palette */
+  --color-bg: #000000;       /* Deep Black */
+  --color-panel: #111111;    /* Module Background */
+  --color-text: #ffffff;     /* Pure white for contrast */
+  --color-dim: #666666;      /* Dimmed text */
+  --color-border: #333333;   /* Structural Lines */
+  --color-active: #ff3b00;   /* Rabbit R1 / TE Orange (Vibrant) */
+  --color-highlight: #ffffff;
+  
+  /* Typography */
+  --font-main: 'JetBrains Mono', monospace;
+  --font-size-xs: 0.7rem;
+  --font-size-sm: 0.85rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.4rem;
+  
+  /* Layout */
+  --spacing-unit: 1rem;
+  --border-width: 1px;
+  --radius-none: 0px;
+  
+  /* Animation */
+  --transition-snap: 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-main);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  cursor: default;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-dim);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-active);
+}
+
+/* Header & Nav - Unified Top Bar Style */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px; /* Fixed height for the navbar */
+  z-index: 2000;
+  padding: 0 2rem;
+  background: rgba(0, 0, 0, 0.85); /* Dark background */
+  backdrop-filter: blur(12px); /* Glass effect */
+  border-bottom: 1px solid var(--color-border); /* Separation line */
+  display: flex;
+  align-items: center;
+  pointer-events: auto; /* Allow clicks */
+}
+
+.Logo {
+  width: 110px;
+  filter: brightness(0) invert(1); /* Force logo to be white */
+  display: block;
+}
+
+.Logo-Text {
+  font-family: var(--font-main);
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: #fff;
+  letter-spacing: -0.05em;
+  cursor: pointer;
+  user-select: none;
+  display: flex; /* Use flex to align items if needed, or just inline */
+  align-items: flex-start; /* For superscript alignment if needed */
+}
+
+.tm-mark {
+  margin-left: 4px; /* Subtle spacing */
+  font-size: 0.6em; /* Smaller trademark symbol */
+  transform: translateY(2px); /* Fine-tune vertical position */
+  opacity: 0.7; /* Slightly dimmed */
+}
+
+.category-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 80px; /* Match header height */
+  display: flex;
+  align-items: center;
+  padding-right: 2rem;
+  gap: 8px;
+  z-index: 2001;
+  background: transparent; /* Transparent to blend with header */
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.category-button {
+  background: rgba(20, 20, 20, 0.8);
+  backdrop-filter: blur(4px);
+  color: var(--color-dim);
+  border: 1px solid var(--color-border);
+  padding: 8px 16px;
+  font-family: var(--font-main);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition-snap);
+  border-radius: 100px;
+}
+
+.category-button:hover {
+  color: var(--color-text);
+  border-color: var(--color-text);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.category-button.active {
+  background: var(--color-active);
+  color: #000;
+  border-color: var(--color-active);
+}
+
+/* Grid Layout */
+.grid-container {
+  padding: 10rem 1rem 2rem 1rem; /* Increased top padding to clear the fixed 80px navbar */
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.grid-inner {
+  position: relative;
+  width: 100%;
+}
+
+.grid-item {
+  position: absolute;
+  transition: transform var(--transition-snap), opacity var(--transition-snap);
+}
+
+.grid-item-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+  outline: none;
+}
+
+/* Card Design - Retro-Future Module */
+.interactive-wrapper {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  transition: all var(--transition-snap);
+}
+
+.grid-item-link:hover .interactive-wrapper {
+  border-color: var(--color-text);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(255, 59, 0, 0.15);
+}
+
+/* Card Header */
+.interactive-wrapper .item-header {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: transparent;
+  z-index: 5;
+  position: relative;
+}
+
+.interactive-wrapper .item-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: var(--font-size-lg);
+  color: var(--color-text);
+  line-height: 0.95;
+  text-transform: uppercase;
+  max-width: 80%;
+  word-break: break-word;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.category-tag {
+  font-size: 9px;
+  padding: 4px 8px;
+  background: var(--color-active);
+  color: #000;
+  font-weight: 800;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Media Area - Patterns for empty cards */
+.media-container {
+  flex-grow: 1;
+  position: relative;
+  min-height: 120px;
+  background-color: #080808;
+  background-image: radial-gradient(#222 1px, transparent 1px);
+  background-size: 20px 20px;
+  z-index: 1;
+}
+
+/* Specific Card Styling based on ID (injected via JS or specific classes) */
+/* Since we don't have ID classes in CSS yet, we'll use general logic or rely on inline styles */
+
+/* Cover Image Handling */
+.interactive-wrapper.has-cover-image {
+  background-size: cover;
+  background-position: center;
+}
+/* Show media container (placeholder) until the cover image is fully loaded */
+.interactive-wrapper.has-cover-image .media-container {
+  display: block; 
+}
+.interactive-wrapper.has-cover-image.loaded .media-container {
+  display: none;
+}
+
+/* Better Overlay for Readability */
+.interactive-wrapper.has-cover-image::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.9) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Description Area */
+.item-description {
+  padding: 16px;
+  font-size: var(--font-size-sm);
+  color: #cccccc;
+  background: transparent;
+  margin-top: auto !important;
+  font-weight: 400;
+  position: relative;
+  z-index: 5;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Modal - Rabbit OS Style */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-snap), visibility var(--transition-snap);
+}
+
+#overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  border-radius: 24px;
+  border: 1px solid var(--color-border);
+  background: #000;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+  max-width: 800px;
+  width: 90vw;
+  height: 85vh;
+  z-index: 2001;
+  display: none; /* Hidden by default */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-snap), transform var(--transition-snap), visibility var(--transition-snap);
+  outline: none;
+  overflow: hidden;
+}
+
+.modal-container.visible {
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.modal-content {
+  padding: 0;
+  height: 100%;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.modal-inner-content {
+  padding: 3rem;
+  max-width: 100%;
+}
+
+.modal-inner-content h1 {
+  font-family: var(--font-main);
+  text-transform: uppercase;
+  font-size: 2.5rem;
+  line-height: 0.95;
+  margin-bottom: 2rem;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.modal-inner-content p {
+  font-family: var(--font-main);
+  font-size: 1rem;
+  color: #bbbbbb;
+  line-height: 1.6;
+  max-width: 65ch;
+}
+
+.modal-header-image {
+    width: 100%;
+    height: auto;
+    max-height: 50vh; /* Limit height so it doesn't take up whole screen */
+    object-fit: cover; /* Cover the area */
+    display: block;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modal-inner-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+    margin: 2rem auto; /* Center the image */
+    object-fit: contain;
+}
+
+.modal-inner-content a {
+  color: var(--color-active);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-weight: 700;
+  transition: color 0.2s;
+}
+.modal-inner-content a:hover {
+  color: #fff;
+}
+
+.modal-inner-content a.download-button {
+  display: inline-block;
+  background: var(--color-active);
+  color: #000;
+  padding: 12px 24px;
+  border-radius: 100px;
+  text-decoration: none;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-top: 1.5rem;
+  margin-right: 10px;
+  transition: transform 0.2s, background-color 0.2s;
+}
+.modal-inner-content a.download-button:hover {
+  transform: scale(1.02);
+  background-color: #fff;
+  color: #000;
+}
+
+.close-button {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: rgba(0,0,0,0.5);
+  color: transparent; /* Hide the text &times; */
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 2002;
+  cursor: pointer;
+  font-size: 0; /* Ensure text is hidden */
+  overflow: hidden;
+}
+
+.close-button::before,
+.close-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 2px;
+  background-color: #fff;
+  transition: background-color 0.2s;
+  /* Force hardware acceleration for crisp rendering */
+  backface-visibility: hidden; 
+}
+
+.close-button::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.close-button::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.close-button:hover {
+  background: var(--color-active);
+  color: transparent;
+  border-color: var(--color-active);
+}
+
+.close-button:hover::before,
+.close-button:hover::after {
+  background-color: #000; /* Black X on hover */
+}
+.close-button:hover {
+  background: var(--color-active);
+  color: #000;
+  border-color: var(--color-active);
+}
+
+/* Utilities */
+.hidden {
+  display: none !important;
+}
+
+/* Custom styling for empty cards (fallback gradients with dot pattern) */
+.grid-item[data-id="kairo"] .media-container {
+    background: 
+        radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+        linear-gradient(45deg, #111, #222);
+    background-size: 20px 20px, 100% 100%;
+}
+.grid-item[data-id="random-taptap"] .media-container {
+    background: 
+        radial-gradient(rgba(255,255,255,0.2) 1px, transparent 1px),
+        linear-gradient(135deg, #000, #1a1a1a);
+    background-size: 30px 30px, 100% 100%;
+}
+.grid-item[data-id="croco-snap"] .media-container {
+    background: 
+        radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+        linear-gradient(135deg, #004d00, #000);
+    background-size: 20px 20px, 100% 100%;
+}
+.grid-item[data-id="field-day"] .media-container {
+    background: 
+        radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+        linear-gradient(135deg, #002a3a, #000);
+    background-size: 20px 20px, 100% 100%;
+}
+/* Modal Header Placeholder (for items without cover image) */
+.modal-header-placeholder {
+    width: 100%;
+    height: 250px; /* Fixed height for header */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--color-border);
+    background-color: #000;
+}
+
+.placeholder-initial {
+    font-size: 6rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.1); /* Subtle transparent white */
+    user-select: none;
+    font-family: var(--font-main);
+}
+
+/* Reusing gradients for modal header placeholders */
+.modal-header-placeholder[data-id="kairo"] {
+    background: 
+        radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+        linear-gradient(45deg, #111, #222);
+    background-size: 20px 20px, 100% 100%;
+}
+.modal-header-placeholder[data-id="random-taptap"] {
+    background: 
+        radial-gradient(rgba(255,255,255,0.2) 1px, transparent 1px),
+        linear-gradient(135deg, #000, #1a1a1a);
+    background-size: 30px 30px, 100% 100%;
+}
+.modal-header-placeholder[data-id="croco-snap"] {
+    background: 
+        radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+        linear-gradient(135deg, #004d00, #000);
+    background-size: 20px 20px, 100% 100%;
+}
+.modal-header-placeholder[data-id="field-day"] {
+    background: 
+        radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+        linear-gradient(135deg, #002a3a, #000);
+    background-size: 20px 20px, 100% 100%;
+}
+
+/* Active State (Click Feedback) */
+.grid-item-link:active .interactive-wrapper,
+.category-button:active,
+.close-button:active,
+.modal-inner-content a.download-button:active {
+  transform: scale(0.97);
+  transition: transform 0.05s ease-out; /* Fast transition for click */
+  filter: brightness(0.9);
+}
+
+/* Loading Indicator (Blinking Cursor) - Only for loading images */
+@keyframes blink-cursor {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.interactive-wrapper.lazy-bg:not(.loaded) .media-container::after {
+  content: '■';
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  color: var(--color-active);
+  font-family: var(--font-main);
+  font-size: 1rem;
+  animation: blink-cursor 0.8s step-end infinite;
+  pointer-events: none;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  header {
+    height: 60px;
+    padding: 0 1rem;
+  }
+
+  .Logo-Text {
+    font-size: 1.2rem;
+  }
+
+  .category-menu {
+    height: 60px;
+    padding-right: 1rem;
+    gap: 4px;
+  }
+
+  .category-button {
+    padding: 6px 12px;
+    font-size: 0.6rem;
+  }
+
+  .grid-container {
+    padding: 6rem 1rem 2rem 1rem; /* Adjusted for smaller header */
+  }
+
+  .modal-inner-content {
+    padding: 1.5rem;
+  }
+
+  .modal-inner-content h1 {
+    font-size: 1.8rem;
+  }
 }
