@@ -32,7 +32,7 @@ async function openModal(itemId) {
     
     const coverImageUrl = itemElement.dataset.coverImage || null;
     
-    const response = await fetch(`/feed/${itemId}.md?t=${new Date().getTime()}`);
+    const response = await fetch(`./feed/${itemId}.md?t=${new Date().getTime()}`);
     if (!response.ok) throw new Error(`Failed to fetch content for ${itemId}`);
     const mdContent = await response.text();
     

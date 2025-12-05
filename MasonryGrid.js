@@ -1,7 +1,7 @@
 import { getCurrentLang } from './i18n.js';
 
 function parseFrontMatter(markdown) {
-  const match = /---\n([\s\S]*?)\n---/.exec(markdown);
+  const match = /---\s*[\r\n]+([\s\S]*?)[\r\n]+---/.exec(markdown);
   if (!match) {
     console.warn('File without front matter found, skipping metadata parsing.');
     return { metadata: {}, content: markdown };
@@ -61,15 +61,21 @@ export class MasonryGrid {
 
   async loadGridItems() {
     try {
-      const manifestResponse = await fetch('feed/manifest.json');
+      // Use URL constructor to resolve path relative to the current page location
+      // This handles GitHub Pages subdirectories correctly (e.g. /repo-name/)
+      const manifestUrl = new URL('feed/manifest.json', window.location.href).href;
+      
+      const manifestResponse = await fetch(manifestUrl);
       if (!manifestResponse.ok) {
-        throw new Error('Failed to load manifest.json');
+        throw new Error(`Failed to load manifest.json from ${manifestUrl}`);
       }
       const manifest = await manifestResponse.json();
       const fileList = manifest.files;
 
-      const fetchPromises = fileList.map(file =>
-        fetch(file)
+      const fetchPromises = fileList.map(file => {
+        // Ensure file path is also relative to current location
+        const fileUrl = new URL(file, window.location.href).href;
+        return fetch(fileUrl)
           .then(response => {
             if (!response.ok) throw new Error(`Failed to load ${file}`);
             return response.text();
@@ -82,8 +88,8 @@ export class MasonryGrid {
               this.categories.add(metadata.category);
             }
           })
-          .catch(error => console.error('Error loading grid item:', error))
-      );
+          .catch(error => console.error('Error loading grid item:', error));
+      });
       await Promise.all(fetchPromises);
     } catch (error) {
       console.error('Error loading grid items from manifest:', error);
