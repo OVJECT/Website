@@ -59,22 +59,36 @@ export class MasonryGrid {
     return Promise.resolve();
   }
 
+  // Helper to determine the correct base URL for the app
+  getAppBaseUrl() {
+    let url = window.location.href.split('#')[0].split('?')[0];
+    // If ending in index.html, strip it
+    if (url.endsWith('index.html') || url.endsWith('index.htm')) {
+        url = url.substring(0, url.lastIndexOf('/') + 1);
+    }
+    // If it doesn't end in slash, add it
+    if (!url.endsWith('/')) {
+        url += '/';
+    }
+    return url;
+  }
+
   async loadGridItems() {
     try {
-      // Use URL constructor to resolve path relative to the current page location
-      // This handles GitHub Pages subdirectories correctly (e.g. /repo-name/)
-      const manifestUrl = new URL('feed/manifest.json', window.location.href).href;
+      const baseUrl = this.getAppBaseUrl();
+      const manifestUrl = new URL('feed/manifest.json', baseUrl).href;
       
+      console.log(`Loading manifest from: ${manifestUrl}`); // Debugging log
+
       const manifestResponse = await fetch(manifestUrl);
       if (!manifestResponse.ok) {
-        throw new Error(`Failed to load manifest.json from ${manifestUrl}`);
+        throw new Error(`Failed to load manifest.json from ${manifestUrl} (Status: ${manifestResponse.status})`);
       }
       const manifest = await manifestResponse.json();
       const fileList = manifest.files;
 
       const fetchPromises = fileList.map(file => {
-        // Ensure file path is also relative to current location
-        const fileUrl = new URL(file, window.location.href).href;
+        const fileUrl = new URL(file, baseUrl).href;
         return fetch(fileUrl)
           .then(response => {
             if (!response.ok) throw new Error(`Failed to load ${file}`);
