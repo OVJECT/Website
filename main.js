@@ -5,6 +5,7 @@ import { initModalRouting } from './modal.js';
 import { initLazyLoader } from './lazyloader.js';
 import { DotRenderer } from './DotRenderer.js';
 
+
 // Fetches markdown metadata and applies custom colors to tags
 async function applyTagColors() {
   // ... (Keep existing code but it's commented out or unused)
@@ -14,45 +15,85 @@ async function applyTagColors() {
 function runBootSequence() {
   const bootOverlay = document.createElement('div');
   bootOverlay.id = 'boot-overlay';
-  bootOverlay.style.position = 'fixed';
-  bootOverlay.style.top = '0';
-  bootOverlay.style.left = '0';
-  bootOverlay.style.width = '100%';
-  bootOverlay.style.height = '100%';
-  bootOverlay.style.background = '#000';
-  bootOverlay.style.color = '#ff3b00';
-  bootOverlay.style.zIndex = '9999';
-  bootOverlay.style.display = 'flex';
-  bootOverlay.style.alignItems = 'center';
-  bootOverlay.style.justifyContent = 'center';
-  bootOverlay.style.fontFamily = "'JetBrains Mono', monospace";
-  bootOverlay.style.fontSize = '1.2rem';
-  bootOverlay.style.flexDirection = 'column';
+  Object.assign(bootOverlay.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100%',
+    background: '#000',
+    color: '#ff3b00',
+    zIndex: '9999',
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
+    padding: '2rem',
+    fontFamily: "'JetBrains Mono', monospace",
+    fontSize: '1rem',
+    flexDirection: 'column',
+    pointerEvents: 'none' // Allow clicks to pass through if it gets stuck
+  });
   
   document.body.appendChild(bootOverlay);
 
+  const logContainer = document.createElement('div');
+  bootOverlay.appendChild(logContainer);
+
   const messages = [
-    "INITIALIZING SYSTEM...",
-    "LOADING MODULES...",
-    "CONNECTING TO OVJECT_NET...",
-    "READY."
+    "Initializing KERNEL...",
+    "Loading VIRTUAL_ENV...",
+    "Mounting FILE_SYSTEM...",
+    "Allocating MEMORY_BLOCKS...",
+    "Analyzing NETWORK_TOPOLOGY...",
+    "Fetching MANIFEST.JSON...",
+    "Compiling ASSETS...",
+    "EXEC_MAIN_THREAD..."
   ];
 
   let delay = 0;
-  messages.forEach((msg, index) => {
-    setTimeout(() => {
-      bootOverlay.innerHTML += `<div>> ${msg}</div>`;
-    }, delay);
-    delay += 300 + Math.random() * 400;
-  });
+  
+  const typeLine = (text, element) => {
+      return new Promise(resolve => {
+          const div = document.createElement('div');
+          div.textContent = "> ";
+          element.appendChild(div);
+          let i = 0;
+          const interval = setInterval(() => {
+              div.textContent += text.charAt(i);
+              i++;
+              if (i >= text.length) {
+                  clearInterval(interval);
+                  resolve();
+              }
+          }, 10 + Math.random() * 20); // Random typing speed
+      });
+  };
 
-  setTimeout(() => {
-    bootOverlay.style.opacity = '0';
-    bootOverlay.style.transition = 'opacity 0.5s ease';
-    setTimeout(() => {
-      bootOverlay.remove();
-    }, 500);
-  }, delay + 500);
+  const run = async () => {
+      for (const msg of messages) {
+          await typeLine(msg, logContainer);
+          await new Promise(r => setTimeout(r, 50 + Math.random() * 100));
+          logContainer.scrollTop = logContainer.scrollHeight;
+      }
+      
+      await new Promise(r => setTimeout(r, 300));
+      
+      const status = document.createElement('div');
+      status.style.color = '#fff';
+      status.style.marginTop = '1rem';
+      status.textContent = "SYSTEM_READY.";
+      logContainer.appendChild(status);
+      
+      setTimeout(() => {
+        bootOverlay.style.opacity = '0';
+        bootOverlay.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => {
+          bootOverlay.remove();
+        }, 500);
+      }, 600);
+  };
+
+  run();
 }
 
 function updateClock() {
@@ -65,7 +106,7 @@ function updateClock() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Run boot sequence only if not hash navigation (optional, but nice)
+  // Run boot sequence only if not hash navigation
   if (!window.location.hash) {
     runBootSequence();
   }
@@ -88,25 +129,22 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (bgImages.length > 0) {
     const randomImg = bgImages[Math.floor(Math.random() * bgImages.length)];
-    // console.log('Loading Dot Matrix Image:', randomImg);
     dotRenderer.loadImage(randomImg).catch(e => console.warn('DotRenderer failed to load image:', e));
   }
 
   const grid = new MasonryGrid('.grid-container', '.grid-item', {
     gutter: 0.8,
-    containerPadding: 2, // This option is now ignored for actual padding application
+    containerPadding: 2, 
     minWidth: '20rem',
     maxWidth: '21rem',
     initInteractiveElements: initInteractiveElements
   });
 
-  // 그리드를 초기화한 후 다른 컴포넌트들을 초기화합니다.
   grid.init().then(async () => {
-    // await applyTagColors(); // TE Style: Disable custom tag colors to maintain monochrome aesthetic
     initInteractiveElements();
-    initLazyLoader(); // Initialize lazy loading for images
+    initLazyLoader();
     new KeyboardNavigation();
-    initModalRouting(); // 새로운 모달 시스템을 초기화합니다.
+    initModalRouting();
     
     // Add Footer System Status
     const footer = document.createElement('footer');

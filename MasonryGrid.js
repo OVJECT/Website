@@ -44,6 +44,9 @@ export class MasonryGrid {
     this.items = [];
     this.categories = new Set(['all']);
     
+    this.currentCategory = 'all';
+    this.currentSearch = '';
+    
     this.debouncedLayout = this.debounce(this.layout.bind(this), 100);
   }
 
@@ -51,6 +54,7 @@ export class MasonryGrid {
     // this.container.style.padding = `${this.options.containerPadding}rem`; // Removed: Let CSS handle padding
     await this.loadGridItems();
     this.setupCategoryMenu();
+    this.setupSearch();
     
     await this.imagesLoaded();
     this.layout();
@@ -118,6 +122,9 @@ export class MasonryGrid {
     }
     item.dataset.id = metadata.fileName;
 
+    // Store title for search
+    item.dataset.title = (metadata.title || '').toLowerCase();
+
     // Store background color and cover image for modal
     if (metadata.backgroundColor) {
         item.dataset.backgroundColor = metadata.backgroundColor;
@@ -142,22 +149,10 @@ export class MasonryGrid {
     const wrapper = document.createElement('div');
     wrapper.className = 'interactive-wrapper';
 
-    // Enforce TE Theme: Ignore metadata background color for the card face
-    // if (metadata.backgroundColor) {
-    //     wrapper.style.backgroundColor = metadata.backgroundColor;
-    // }
-
-    // If no background color is specified, or it's the default page background,
-    // assume a dark theme for the card content.
-    // if (!metadata.backgroundColor || metadata.backgroundColor === 'var(--color-bg)') {
-    //     wrapper.classList.add('dark-theme-card');
-    // }
-
     if (metadata.coverImage) {
         wrapper.classList.add('has-cover-image');
         wrapper.classList.add('lazy-bg');
         wrapper.dataset.bg = metadata.coverImage;
-        // Background image will be set by lazyloader
     }
 
     // Localization Logic
@@ -165,7 +160,6 @@ export class MasonryGrid {
     const localizedDesc = metadata[`description_${lang}`];
     const description = localizedDesc || metadata.description || '';
 
-    // Simplify tag: remove inline styles if any were added by other scripts, just pure class
     const categoryTag = metadata.category ? `<span class="category-tag">${metadata.category}</span>` : '';
     
     // Generate a placeholder icon if no cover image
@@ -207,8 +201,7 @@ export class MasonryGrid {
 
     menu.addEventListener('click', e => {
       if (e.target.matches('.category-button')) {
-        const category = e.target.dataset.category;
-        this.filterByCategory(category);
+        this.currentCategory = e.target.dataset.category;
         
         menu.querySelectorAll('.category-button').forEach(btn => {
           btn.classList.remove('active');
@@ -216,15 +209,32 @@ export class MasonryGrid {
         });
         e.target.classList.add('active');
         e.target.setAttribute('aria-pressed', 'true');
+        
+        this.applyFilters();
       }
     });
   }
 
-  filterByCategory(category) {
+  setupSearch() {
+    const searchInput = document.getElementById('search-input');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', (e) => {
+      this.currentSearch = e.target.value.toLowerCase().trim();
+      this.applyFilters();
+    });
+  }
+
+  applyFilters() {
     this.items.forEach(item => {
       const itemCategory = item.dataset.category;
-      // An item is visible if the filter is 'all', its category matches, or it has no category.
-      const isVisible = category === 'all' || itemCategory === category || !itemCategory;
+      const itemTitle = item.dataset.title;
+
+      const matchesCategory = this.currentCategory === 'all' || itemCategory === this.currentCategory || !itemCategory;
+      const matchesSearch = !this.currentSearch || itemTitle.includes(this.currentSearch);
+
+      const isVisible = matchesCategory && matchesSearch;
+      
       item.classList.toggle('hidden', !isVisible);
       item.setAttribute('aria-hidden', !isVisible);
     });

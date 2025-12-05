@@ -121,6 +121,7 @@ header {
   user-select: none;
   display: flex; /* Use flex to align items if needed, or just inline */
   align-items: flex-start; /* For superscript alignment if needed */
+  margin-right: auto; /* Push everything else to the right */
 }
 
 .tm-mark {
@@ -130,19 +131,45 @@ header {
   opacity: 0.7; /* Slightly dimmed */
 }
 
+/* Search Bar */
+.search-container {
+  margin-right: 1rem;
+  position: relative;
+}
+
+#search-input {
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-family: var(--font-main);
+  font-size: var(--font-size-xs);
+  padding: 8px 12px;
+  width: 200px;
+  border-radius: 100px; /* Pill shape to match buttons */
+  outline: none;
+  transition: all var(--transition-snap);
+  text-transform: uppercase;
+}
+
+#search-input:focus {
+  border-color: var(--color-active);
+  width: 240px; /* Expand on focus */
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#search-input::placeholder {
+  color: var(--color-dim);
+}
+
 .category-menu {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 80px; /* Match header height */
+  position: relative; /* Changed from fixed to flow naturally */
+  height: auto; /* Changed from fixed height */
   display: flex;
   align-items: center;
-  padding-right: 2rem;
   gap: 8px;
   z-index: 2001;
-  background: transparent; /* Transparent to blend with header */
+  background: transparent;
   border: none;
-  border-radius: 0;
   box-shadow: none;
 }
 
@@ -306,12 +333,15 @@ header {
   overflow: hidden;
   border-radius: 16px;
   transition: all var(--transition-snap);
+  /* 3D Effect Preparation */
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .grid-item-link:hover .interactive-wrapper {
   border-color: var(--color-text);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(255, 59, 0, 0.15);
+  /* transform: translateY(-2px); handled by TiltEffect now */
+  box-shadow: 0 10px 30px rgba(255, 59, 0, 0.2); /* More dramatic shadow */
 }
 
 /* Card Header */
@@ -323,6 +353,7 @@ header {
   background: transparent;
   z-index: 5;
   position: relative;
+  transform: translateZ(20px); /* Pop out text */
 }
 
 .interactive-wrapper .item-title {
@@ -358,6 +389,7 @@ header {
   background-image: radial-gradient(#222 1px, transparent 1px);
   background-size: 20px 20px;
   z-index: 1;
+  transform: translateZ(10px); /* Slight depth */
 }
 
 /* Specific Card Styling based on ID (injected via JS or specific classes) */
@@ -397,6 +429,7 @@ header {
   position: relative;
   z-index: 5;
   text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  transform: translateZ(20px); /* Pop out text */
 }
 
 /* Modal - Rabbit OS Style */
@@ -697,10 +730,18 @@ header {
   .Logo-Text {
     font-size: 1.4rem;
   }
+  
+  /* Hide search on very small screens or style differently if needed, 
+     but for now keeping it visible but smaller */
+  #search-input {
+    width: 120px;
+    font-size: 0.65rem;
+  }
+  #search-input:focus {
+    width: 160px;
+  }
 
   .category-menu {
-    height: 60px;
-    padding-right: 1rem;
     gap: 4px;
   }
 

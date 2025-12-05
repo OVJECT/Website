@@ -2,9 +2,9 @@ export class InteractiveElement {
   constructor(element, options = {}) {
     this.element = element;
     this.options = {
-      maxTilt: 10,
-      perspective: 2500,
-      scale: 0.97,
+      maxTilt: 15,
+      perspective: 1000,
+      scale: 0.98,
       ease: 0.1,
       scrollThreshold: 5,
       touchDelay: 100,
