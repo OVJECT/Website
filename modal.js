@@ -37,7 +37,23 @@ async function openModal(itemId) {
     let headerImage = '';
     if (coverImageUrl) {
         if (coverImageUrl.toLowerCase().endsWith('.mp4')) {
-            headerImage = `<video src="${coverImageUrl}" class="modal-header-image" autoplay muted loop playsinline></video>`;
+            // Capture current frame from grid video to use as poster
+            let posterAttr = '';
+            const sourceVideo = itemElement.querySelector('video');
+            if (sourceVideo && sourceVideo.readyState >= 2) { // HAVE_CURRENT_DATA
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = sourceVideo.videoWidth;
+                    canvas.height = sourceVideo.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(sourceVideo, 0, 0, canvas.width, canvas.height);
+                    const posterDataUrl = canvas.toDataURL('image/jpeg', 0.5); // Low quality for speed
+                    posterAttr = `poster="${posterDataUrl}"`;
+                } catch (e) {
+                    console.warn('Failed to capture video poster:', e);
+                }
+            }
+            headerImage = `<video src="${coverImageUrl}" class="modal-header-image" ${posterAttr} autoplay muted loop playsinline></video>`;
         } else {
             headerImage = `<img src="${coverImageUrl}" alt="" class="modal-header-image">`;
         }
