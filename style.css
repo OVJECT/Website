@@ -390,6 +390,7 @@ header {
   background-size: 20px 20px;
   z-index: 1;
   transform: translateZ(10px); /* Slight depth */
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1); /* Smooth reveal */
 }
 
 /* Specific Card Styling based on ID (injected via JS or specific classes) */
@@ -405,7 +406,8 @@ header {
   display: block; 
 }
 .interactive-wrapper.has-cover-image.loaded .media-container {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Better Overlay for Readability */
@@ -731,14 +733,9 @@ header {
     font-size: 1.4rem;
   }
   
-  /* Hide search on very small screens or style differently if needed, 
-     but for now keeping it visible but smaller */
-  #search-input {
-    width: 120px;
-    font-size: 0.65rem;
-  }
-  #search-input:focus {
-    width: 160px;
+  /* Hide search on mobile to prevent overflow */
+  .search-container {
+    display: none;
   }
 
   .category-menu {

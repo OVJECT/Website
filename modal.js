@@ -32,6 +32,38 @@ async function openModal(itemId) {
     
     const coverImageUrl = itemElement.dataset.coverImage || null;
     
+    // --- INSTANT RENDER START ---
+    // Render the header image/video immediately using cached data from the grid
+    let headerImage = '';
+    if (coverImageUrl) {
+        if (coverImageUrl.toLowerCase().endsWith('.mp4')) {
+            headerImage = `<video src="${coverImageUrl}" class="modal-header-image" autoplay muted loop playsinline></video>`;
+        } else {
+            headerImage = `<img src="${coverImageUrl}" alt="" class="modal-header-image">`;
+        }
+    } else {
+        // Generate placeholder header for items without cover image
+        // Try to get title from dataset or fallback to ID
+        const title = (itemElement.querySelector('.item-title')?.textContent || itemId).trim();
+        const initial = title.charAt(0).toUpperCase();
+        
+        headerImage = `
+            <div class="modal-header-placeholder" data-id="${itemId}">
+                <div class="placeholder-initial">${initial}</div>
+            </div>
+        `;
+    }
+
+    // Show header immediately with a loading state for content
+    modalContent.innerHTML = `
+      ${headerImage}
+      <div class="modal-inner-content">
+        <div style="color: #666; font-family: var(--font-main);">LOADING_DATA...</div>
+      </div>
+    `;
+    modalContainer.scrollTop = 0;
+    // --- INSTANT RENDER END ---
+    
     const response = await fetch(`./feed/${itemId}.md?t=${new Date().getTime()}`);
     if (!response.ok) throw new Error(`Failed to fetch content for ${itemId}`);
     const mdContent = await response.text();
@@ -85,26 +117,8 @@ async function openModal(itemId) {
         return `apps.apple.com/${lang}/`;
     });
 
-    let headerImage = '';
-    if (coverImageUrl) {
-        if (coverImageUrl.toLowerCase().endsWith('.mp4')) {
-            headerImage = `<video src="${coverImageUrl}" class="modal-header-image" autoplay muted loop playsinline></video>`;
-        } else {
-            headerImage = `<img src="${coverImageUrl}" alt="" class="modal-header-image">`;
-        }
-    } else {
-        // Generate placeholder header for items without cover image
-        const titleMatch = mdContent.match(/title:\s*["']?(.*?)["']?\n/);
-        const title = titleMatch ? titleMatch[1] : itemId;
-        const initial = title.charAt(0).toUpperCase();
-        
-        headerImage = `
-            <div class="modal-header-placeholder" data-id="${itemId}">
-                <div class="placeholder-initial">${initial}</div>
-            </div>
-        `;
-    }
-
+    // Update only the inner content part, keeping the header (or re-rendering it seamlessly)
+    // We re-render the whole thing to ensure stability, but since the image is cached, it shouldn't flash.
     modalContent.innerHTML = `
       ${headerImage}
       <div class="modal-inner-content">
