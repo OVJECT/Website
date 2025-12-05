@@ -4,6 +4,7 @@ import { KeyboardNavigation } from './keyboard-navigation.js';
 import { initModalRouting } from './modal.js';
 import { initLazyLoader } from './lazyloader.js';
 import { DotRenderer } from './DotRenderer.js';
+import { TiltEffect } from './TiltEffect.js';
 
 
 // Fetches markdown metadata and applies custom colors to tags
@@ -11,90 +12,116 @@ async function applyTagColors() {
   // ... (Keep existing code but it's commented out or unused)
 }
 
-// Boot Animation Function
-function runBootSequence() {
-  const bootOverlay = document.createElement('div');
-  bootOverlay.id = 'boot-overlay';
-  Object.assign(bootOverlay.style, {
-    position: 'fixed',
-    top: '0',
-    left: '0',
-    width: '100%',
-    height: '100%',
-    background: '#000',
-    color: '#ff3b00',
-    zIndex: '9999',
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'flex-end',
-    padding: '2rem',
-    fontFamily: "'JetBrains Mono', monospace",
-    fontSize: '1rem',
-    flexDirection: 'column',
-    pointerEvents: 'none' // Allow clicks to pass through if it gets stuck
-  });
-  
-  document.body.appendChild(bootOverlay);
+// Boot Console Manager
+const BootConsole = {
+  overlay: null,
+  container: null,
+  queue: [],
+  isTyping: false,
+  isActive: false,
 
-  const logContainer = document.createElement('div');
-  bootOverlay.appendChild(logContainer);
+  init() {
+    this.isActive = true;
+    this.overlay = document.createElement('div');
+    this.overlay.id = 'boot-overlay';
+    Object.assign(this.overlay.style, {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      width: '100%',
+      height: '100%',
+      background: '#000',
+      color: '#ff3b00',
+      zIndex: '9999',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-end',
+      padding: '2rem',
+      fontFamily: "'JetBrains Mono', monospace",
+      fontSize: '1rem',
+      flexDirection: 'column',
+      pointerEvents: 'none'
+    });
+    
+    document.body.appendChild(this.overlay);
+    this.container = document.createElement('div');
+    Object.assign(this.container.style, {
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start', // Align text to left
+        overflowY: 'hidden'
+    });
+    this.overlay.appendChild(this.container);
 
-  const messages = [
-    "Initializing KERNEL...",
-    "Loading VIRTUAL_ENV...",
-    "Mounting FILE_SYSTEM...",
-    "Allocating MEMORY_BLOCKS...",
-    "Analyzing NETWORK_TOPOLOGY...",
-    "Fetching MANIFEST.JSON...",
-    "Compiling ASSETS...",
-    "EXEC_MAIN_THREAD..."
-  ];
+    // Initial Logs
+    this.log("BIOS_CHECK [0x0000] ... OK");
+    this.log("INIT_KERNEL_MODULES ... START");
+  },
 
-  let delay = 0;
-  
-  const typeLine = (text, element) => {
-      return new Promise(resolve => {
-          const div = document.createElement('div');
-          div.textContent = "> ";
-          element.appendChild(div);
-          let i = 0;
-          const interval = setInterval(() => {
-              div.textContent += text.charAt(i);
-              i++;
-              if (i >= text.length) {
-                  clearInterval(interval);
-                  resolve();
-              }
-          }, 10 + Math.random() * 20); // Random typing speed
-      });
-  };
+  log(message) {
+    if (!this.isActive) return;
+    this.queue.push(message);
+    this.processQueue();
+  },
 
-  const run = async () => {
-      for (const msg of messages) {
-          await typeLine(msg, logContainer);
-          await new Promise(r => setTimeout(r, 50 + Math.random() * 100));
-          logContainer.scrollTop = logContainer.scrollHeight;
-      }
+  async processQueue() {
+    if (this.isTyping || this.queue.length === 0) return;
+
+    this.isTyping = true;
+    const msg = this.queue.shift();
+    await this.typeLine(msg);
+    this.isTyping = false;
+    this.processQueue();
+  },
+
+  typeLine(text) {
+    return new Promise(resolve => {
+      const div = document.createElement('div');
+      div.textContent = "> ";
+      // Prepend to keep latest at bottom if flex-end, but we are using column top-down
+      // Actually, standard terminal adds to bottom. 
+      // Let's scroll to bottom if needed.
+      this.container.appendChild(div);
       
-      await new Promise(r => setTimeout(r, 300));
+      let i = 0;
+      // Ultra fast typing
+      const speed = 0.5 + Math.random() * 3; 
       
-      const status = document.createElement('div');
-      status.style.color = '#fff';
-      status.style.marginTop = '1rem';
-      status.textContent = "SYSTEM_READY.";
-      logContainer.appendChild(status);
-      
-      setTimeout(() => {
-        bootOverlay.style.opacity = '0';
-        bootOverlay.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => {
-          bootOverlay.remove();
-        }, 500);
-      }, 600);
-  };
+      const interval = setInterval(() => {
+        div.textContent += text.charAt(i);
+        i++;
+        if (i >= text.length) {
+          clearInterval(interval);
+          // Minimal pause after line completion
+          setTimeout(resolve, 5); 
+        }
+        // Auto scroll
+        // this.overlay.scrollTop = this.overlay.scrollHeight; 
+      }, speed);
+    });
+  },
 
-  run();
-}
+  finish() {
+    this.log("EXEC_MAIN_THREAD (PID: 1337) ... STARTED");
+    this.log("SYSTEM_READY.");
+    
+    // Wait for the queue to empty before fading out
+    const checkQueue = setInterval(() => {
+        if (this.queue.length === 0 && !this.isTyping) {
+            clearInterval(checkQueue);
+            setTimeout(() => {
+                this.overlay.style.opacity = '0';
+                this.overlay.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    this.overlay.remove();
+                    this.isActive = false;
+                }, 300);
+            }, 100);
+        }
+    }, 100);
+  }
+};
 
 function updateClock() {
   const clockEl = document.getElementById('clock');
@@ -108,7 +135,7 @@ function updateClock() {
 document.addEventListener('DOMContentLoaded', () => {
   // Run boot sequence only if not hash navigation
   if (!window.location.hash) {
-    runBootSequence();
+    BootConsole.init();
   }
 
   // Initialize Dot Matrix Background
@@ -137,7 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
     containerPadding: 2, 
     minWidth: '20rem',
     maxWidth: '21rem',
-    initInteractiveElements: initInteractiveElements
+    initInteractiveElements: initInteractiveElements,
+    onLog: (msg) => BootConsole.log(msg) // Hook up logging
   });
 
   grid.init().then(async () => {
@@ -145,6 +173,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initLazyLoader();
     new KeyboardNavigation();
     initModalRouting();
+    
+    // Signal boot completion
+    if (!window.location.hash) {
+        BootConsole.finish();
+    }
     
     // Add Footer System Status
     const footer = document.createElement('footer');

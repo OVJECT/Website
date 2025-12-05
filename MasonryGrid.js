@@ -39,6 +39,7 @@ export class MasonryGrid {
     this.options = {
         gutter: 1, // in rem
         containerPadding: 2, // in rem
+        onLog: () => {}, // Callback for boot sequence logging
         ...options
     };
     this.items = [];
@@ -56,8 +57,10 @@ export class MasonryGrid {
     this.setupCategoryMenu();
     this.setupSearch();
     
+    this.options.onLog("BUFFERING_MEDIA_ASSETS [IMG_res]...");
     await this.imagesLoaded();
     this.layout();
+    this.options.onLog("RENDER_PIPELINE_READY");
     
     window.addEventListener('resize', this.debouncedLayout);
     return Promise.resolve();
@@ -79,6 +82,7 @@ export class MasonryGrid {
 
   async loadGridItems() {
     try {
+      this.options.onLog("ESTABLISHING_UPLINK [manifest.json]...");
       const baseUrl = this.getAppBaseUrl();
       const manifestUrl = new URL('feed/manifest.json', baseUrl).href;
       
@@ -90,6 +94,9 @@ export class MasonryGrid {
       }
       const manifest = await manifestResponse.json();
       const fileList = manifest.files;
+      
+      this.options.onLog(`FOUND_MANIFEST_HEADER [${fileList.length} OBJECTS] ... OK`);
+      this.options.onLog("DECRYPTING_DATA_STREAMS [MD_parse]...");
 
       const fetchPromises = fileList.map(file => {
         const fileUrl = new URL(file, baseUrl).href;
@@ -111,6 +118,7 @@ export class MasonryGrid {
       await Promise.all(fetchPromises);
     } catch (error) {
       console.error('Error loading grid items from manifest:', error);
+      this.options.onLog(`ERROR: ${error.message}`);
     }
   }
 
@@ -151,8 +159,15 @@ export class MasonryGrid {
 
     if (metadata.coverImage) {
         wrapper.classList.add('has-cover-image');
-        wrapper.classList.add('lazy-bg');
-        wrapper.dataset.bg = metadata.coverImage;
+        const isVideo = metadata.coverImage.toLowerCase().endsWith('.mp4');
+        
+        if (isVideo) {
+            wrapper.classList.add('lazy-video');
+            wrapper.dataset.video = metadata.coverImage;
+        } else {
+            wrapper.classList.add('lazy-bg');
+            wrapper.dataset.bg = metadata.coverImage;
+        }
     }
 
     // Localization Logic
