@@ -63,6 +63,10 @@ html, body {
   cursor: default;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 /* Scrollbar - TE Style */
 ::-webkit-scrollbar {
   width: 6px;
@@ -573,6 +577,8 @@ header {
   border-radius: 50%;
   border: 1px solid var(--color-border);
   background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: transparent; /* Hide the text &times; */
   top: 1.5rem;
   right: 1.5rem;

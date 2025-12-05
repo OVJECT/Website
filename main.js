@@ -133,9 +133,11 @@ function updateClock() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Run boot sequence only if not hash navigation
-  if (!window.location.hash) {
+  // Run boot sequence only if not hash navigation AND not run in this session yet
+  const bootRun = sessionStorage.getItem('boot_sequence_run');
+  if (!window.location.hash && !bootRun) {
     BootConsole.init();
+    sessionStorage.setItem('boot_sequence_run', 'true');
   }
 
   // Initialize Dot Matrix Background
@@ -175,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initModalRouting();
     
     // Signal boot completion
-    if (!window.location.hash) {
+    if (BootConsole.isActive) {
         BootConsole.finish();
     }
     

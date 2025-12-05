@@ -217,6 +217,14 @@ export class MasonryGrid {
     menu.addEventListener('click', e => {
       if (e.target.matches('.category-button')) {
         this.currentCategory = e.target.dataset.category;
+
+        if (this.currentCategory === 'all') {
+          const searchInput = document.getElementById('search-input');
+          if (searchInput) {
+            searchInput.value = '';
+            this.currentSearch = '';
+          }
+        }
         
         menu.querySelectorAll('.category-button').forEach(btn => {
           btn.classList.remove('active');
