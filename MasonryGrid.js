@@ -241,6 +241,7 @@ export class MasonryGrid {
   }
 
   applyFilters() {
+    let visibleIndex = 0;
     this.items.forEach(item => {
       const itemCategory = item.dataset.category;
       const itemTitle = item.dataset.title;
@@ -250,8 +251,16 @@ export class MasonryGrid {
 
       const isVisible = matchesCategory && matchesSearch;
       
-      item.classList.toggle('hidden', !isVisible);
+      item.classList.toggle('hidden-item', !isVisible);
       item.setAttribute('aria-hidden', !isVisible);
+
+      // Staggered Animation Logic
+      if (isVisible) {
+        item.style.transitionDelay = `${visibleIndex * 30}ms`;
+        visibleIndex++;
+      } else {
+        item.style.transitionDelay = '0ms';
+      }
     });
     this.layout();
   }
@@ -271,7 +280,7 @@ export class MasonryGrid {
     this.innerContainer.style.position = 'relative';
 
     this.items.forEach(item => {
-      if (item.classList.contains('hidden')) return;
+      if (item.classList.contains('hidden-item')) return;
 
       const isDoubleWidth = item.classList.contains('grid-item-width-2') && numColumns > 1;
       const isDoubleHeight = item.classList.contains('grid-item-height-2');

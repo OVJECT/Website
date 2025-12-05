@@ -310,7 +310,14 @@ header {
 
 .grid-item {
   position: absolute;
-  transition: transform var(--transition-snap), opacity var(--transition-snap);
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+}
+
+.grid-item.hidden-item {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+  z-index: -1; /* Push to back so it doesn't block clicks even if visible */
 }
 
 .grid-item-link {
