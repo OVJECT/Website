@@ -755,7 +755,7 @@ header {
   }
 
   .grid-container {
-    padding: 6rem 1rem 2rem 1rem; /* Adjusted for smaller header */
+    padding: 3rem 1rem 2rem 1rem; /* Adjusted for smaller header */
   }
 
   .modal-inner-content {

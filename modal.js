@@ -133,14 +133,18 @@ async function openModal(itemId) {
         return `apps.apple.com/${lang}/`;
     });
 
-    // Update only the inner content part, keeping the header (or re-rendering it seamlessly)
-    // We re-render the whole thing to ensure stability, but since the image is cached, it shouldn't flash.
-    modalContent.innerHTML = `
-      ${headerImage}
-      <div class="modal-inner-content">
-        ${htmlContent}
-      </div>
-    `;
+    // Update only the inner content part, keeping the header to prevent video reloading/flashing
+    const innerContentDiv = modalContent.querySelector('.modal-inner-content');
+    if (innerContentDiv) {
+      innerContentDiv.innerHTML = htmlContent;
+    } else {
+      modalContent.innerHTML = `
+        ${headerImage}
+        <div class="modal-inner-content">
+          ${htmlContent}
+        </div>
+      `;
+    }
     modalContainer.scrollTop = 0;
 
   } catch (error) {
