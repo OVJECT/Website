@@ -63,17 +63,29 @@ html, body {
   cursor: default;
 }
 
-/* Scrollbar */
+/* Scrollbar - TE Style */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px; /* For horizontal scrollbars */
   background: var(--color-bg);
 }
-::-webkit-scrollbar-thumb {
-  background: var(--color-dim);
-  border-radius: 3px;
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
+
+::-webkit-scrollbar-thumb {
+  background: #333; /* Dark grey default */
+  border-radius: 0px; /* Sharp edges for mechanical feel */
+  border: 1px solid var(--color-bg); /* Separation from content */
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-active);
+  background: var(--color-active); /* Orange on hover */
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--color-bg);
 }
 
 /* Header & Nav - Unified Top Bar Style */
@@ -161,9 +173,105 @@ header {
   border-color: var(--color-active);
 }
 
+/* Intro Section - Rabbit R1 Style Typography */
+.intro-section {
+  padding: 140px 1rem 4rem 1rem; /* Adjust padding to match grid-container */
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* border-bottom: 1px solid var(--color-border); Removed to allow full width separator */
+  /* margin-bottom: 2rem; Removed as separator will be on grid-container */
+  position: relative;
+  background: var(--color-bg);
+  
+  max-width: 1800px; /* Match grid-container max-width */
+  margin: 0 auto; /* Center align like grid-container */
+  /* overflow: hidden; Removed to allow canvas full width */
+}
+
+#intro-canvas {
+  position: absolute;
+  top: 0;
+  left: 50%; /* Start from center */
+  width: 100vw; /* Full viewport width */
+  height: 100%;
+  transform: translateX(-50%); /* Center it back */
+  z-index: 0; /* Behind text */
+  opacity: 0.3; /* Subtle background effect */
+  pointer-events: none;
+}
+
+.intro-text-line {
+  font-family: var(--font-main);
+  font-weight: 800;
+  font-size: clamp(3.5rem, 10vw, 8rem); /* Massive responsive text */
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--color-text);
+  text-transform: uppercase;
+  opacity: 0;
+  animation: slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  position: relative; /* Ensure text is above canvas */
+  z-index: 1;
+}
+
+.intro-text-line:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.intro-sub {
+  margin-top: 2rem;
+  display: flex;
+  gap: 2rem;
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  color: var(--color-active);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  animation: fadeIn 0.8s ease forwards 0.4s;
+}
+
+/* Full Width Separator */
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-border);
+  margin-bottom: 2rem;
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Mobile Adjustments for Intro */
+@media (max-width: 768px) {
+  .intro-section {
+    padding-top: 100px;
+    min-height: 40vh;
+  }
+  .intro-sub {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
 /* Grid Layout */
 .grid-container {
-  padding: 10rem 1rem 2rem 1rem; /* Increased top padding to clear the fixed 80px navbar */
+  padding: 2rem 1rem;
   max-width: 1800px;
   margin: 0 auto;
 }

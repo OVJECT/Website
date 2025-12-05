@@ -3,6 +3,7 @@ import { initInteractiveElements } from './interactive-card.js';
 import { KeyboardNavigation } from './keyboard-navigation.js';
 import { initModalRouting } from './modal.js';
 import { initLazyLoader } from './lazyloader.js';
+import { DotRenderer } from './DotRenderer.js';
 
 // Fetches markdown metadata and applies custom colors to tags
 async function applyTagColors() {
@@ -54,10 +55,41 @@ function runBootSequence() {
   }, delay + 500);
 }
 
+function updateClock() {
+  const clockEl = document.getElementById('clock');
+  if (clockEl) {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-GB', { hour12: false }); // HH:MM:SS
+    clockEl.textContent = timeString;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // Run boot sequence only if not hash navigation (optional, but nice)
   if (!window.location.hash) {
     runBootSequence();
+  }
+
+  // Initialize Dot Matrix Background
+  const dotRenderer = new DotRenderer('#intro-canvas', '.intro-section');
+  
+  // Use a function to handle path resolution
+  const getAssetPath = (path) => {
+      // Simple relative path handling
+      return path;
+  };
+
+  const bgImages = [
+    'feed/assets/kairo.png',
+    'feed/assets/pita_field.png',
+    'feed/assets/pita_game.gif',
+    'feed/assets/random.png'
+  ];
+  
+  if (bgImages.length > 0) {
+    const randomImg = bgImages[Math.floor(Math.random() * bgImages.length)];
+    // console.log('Loading Dot Matrix Image:', randomImg);
+    dotRenderer.loadImage(randomImg).catch(e => console.warn('DotRenderer failed to load image:', e));
   }
 
   const grid = new MasonryGrid('.grid-container', '.grid-item', {
@@ -90,6 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
       <div>© ${new Date().getFullYear()} OVJECT INC. ALL RIGHTS RESERVED.</div>
     `;
     document.body.appendChild(footer);
+
+    // Start Status Clock
+    updateClock();
+    setInterval(updateClock, 1000);
 
   }).catch(error => console.error("Initialization failed:", error));
 });
