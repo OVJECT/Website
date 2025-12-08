@@ -234,6 +234,18 @@ export class MasonryGrid {
         e.target.setAttribute('aria-pressed', 'true');
         
         this.applyFilters();
+        
+        // Smart Scroll: If user is deep down, scroll back to grid top to show results
+        const gridRect = this.container.getBoundingClientRect();
+        const absoluteGridTop = gridRect.top + window.pageYOffset;
+        const headerOffset = 100; // Approx header height + padding
+        
+        if (window.pageYOffset > absoluteGridTop - headerOffset) {
+            window.scrollTo({
+                top: absoluteGridTop - headerOffset,
+                behavior: 'smooth'
+            });
+        }
       }
     });
   }
@@ -342,7 +354,7 @@ export class MasonryGrid {
     });
 
     const containerHeight = Math.max(...columnHeights);
-    this.innerContainer.style.height = `${containerHeight}px`;
+    this.innerContainer.style.height = `${containerHeight + 50}px`; // Add buffer for shadows
   }
   
   imagesLoaded() {

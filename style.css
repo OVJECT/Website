@@ -310,6 +310,7 @@ header {
 .grid-inner {
   position: relative;
   width: 100%;
+  overflow: hidden;
 }
 
 .grid-item {
@@ -457,7 +458,7 @@ header {
   z-index: 2000;
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--transition-snap), visibility var(--transition-snap);
+  transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 #overlay.visible {
@@ -484,6 +485,7 @@ header {
   transition: opacity var(--transition-snap), transform var(--transition-snap), visibility var(--transition-snap);
   outline: none;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .modal-container.visible {
@@ -492,6 +494,7 @@ header {
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, -50%) scale(1);
+  pointer-events: auto;
 }
 
 .modal-content {
@@ -504,6 +507,15 @@ header {
 .modal-inner-content {
   padding: 3rem;
   max-width: 100%;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Exit transition */
+}
+
+.modal-container.visible .modal-inner-content {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease 0.1s, transform 0.5s cubic-bezier(0.19, 1, 0.22, 1) 0.1s; /* Enter transition */
 }
 
 .modal-inner-content h1 {
@@ -761,7 +773,7 @@ header {
   }
 
   .grid-container {
-    padding: 3rem 1rem 2rem 1rem; /* Adjusted for smaller header */
+    padding: 3rem 1rem 3rem 1rem; /* Consistent top and bottom padding */
   }
 
   .modal-inner-content {
