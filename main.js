@@ -140,6 +140,38 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionStorage.setItem('boot_sequence_run', 'true');
   }
 
+  // Cookie Consent Toast
+  const checkCookieConsent = () => {
+    if (!localStorage.getItem('cookie_consent')) {
+      const toast = document.createElement('div');
+      toast.id = 'cookie-toast';
+      toast.innerHTML = `
+        <div class="cookie-text">
+          We use cookies to analyze traffic and improve your experience.
+        </div>
+        <div class="cookie-actions">
+          <button id="cookie-accept" class="cookie-btn">OK</button>
+          <a href="Privacy Policy.html" target="_blank" class="cookie-link">Privacy Policy</a>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      
+      // Animate in
+      requestAnimationFrame(() => {
+        toast.classList.add('visible');
+      });
+
+      document.getElementById('cookie-accept').addEventListener('click', () => {
+        localStorage.setItem('cookie_consent', 'true');
+        toast.classList.remove('visible');
+        setTimeout(() => toast.remove(), 500);
+      });
+    }
+  };
+  
+  // Delay cookie toast slightly to let intro finish
+  setTimeout(checkCookieConsent, 2000);
+
   // Initialize Dot Matrix Background
   const dotRenderer = new DotRenderer('#intro-canvas', '.intro-section');
   
@@ -192,6 +224,9 @@ document.addEventListener('DOMContentLoaded', () => {
     footer.style.borderTop = '1px solid #111';
     footer.innerHTML = `
       <div style="margin-bottom: 0.5rem;">SYSTEM STATUS: ONLINE ●</div>
+      <div style="margin-bottom: 0.5rem;">
+        <a href="Privacy Policy.html" target="_blank" style="color: #666; text-decoration: none; border-bottom: 1px dotted #666;">PRIVACY POLICY</a>
+      </div>
       <div>© ${new Date().getFullYear()} OVJECT INC. ALL RIGHTS RESERVED.</div>
     `;
     document.body.appendChild(footer);
