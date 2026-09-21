@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LATENT — Foreground service review</title>
+  <style>body{margin:0;background:#fafafa;color:#282828;font:17px/1.65 system-ui,sans-serif}main{max-width:860px;margin:auto;padding:40px 24px}h1{line-height:1.2}video{display:block;width:100%;max-width:440px;margin:24px auto;background:#111;border-radius:16px}a{color:#a84418}li{margin:8px 0}.note{padding:16px;background:#fff0e5;border-radius:12px}</style>
+</head>
+<body><main>
+  <p>LATENT · com.ovject.latent · version 1.0.0 (9)</p>
+  <h1>Nearby Bluetooth connection: foreground service demonstration</h1>
+  <p>LATENT is a nearby messenger. Its <code>connectedDevice</code> foreground service keeps the Bluetooth peer link available for incoming messages and relay traffic while the app is off screen. The user can turn background operation off in Me → Keep nearby link on.</p>
+  <video controls playsinline preload="metadata" aria-label="LATENT foreground service demonstration">
+    <source src="foreground-service-demo.mp4" type="video/mp4">
+    <p><a href="foreground-service-demo.mp4">Open the MP4 demonstration</a>.</p>
+  </video>
+  <p><a href="foreground-service-demo.mp4">Direct MP4 video</a> · <a href="foreground-service-demo.mp4#t=178">Jump to the settings demonstration (2:58)</a></p>
+  <ol>
+    <li>First use: allow nearby-device access after the app's age and usage-rule checks. The app creates a local identity; no login credentials are required.</li>
+    <li>Allow notifications. After returning to Android's home screen, “Nearby link is on” remains visible as an ongoing notification.</li>
+    <li>Open Me and turn Keep nearby link on off. Leave the app; the foreground service stops and its notification disappears.</li>
+    <li>Return to the app and turn the setting on. Leave again; the connected-device service and ongoing notification remain active.</li>
+  </ol>
+  <p class="note">Recorded on a disposable Android emulator using an APK generated from the submitted build 9 App Bundle. The two recordings are joined in their original order and timing. This demonstrates actual permission, notification and foreground-service behavior; it is not a physical two-phone radio-range or message-delivery test. Internet relay use was disabled before first registration, and no real user's account or messages appear.</p>
+  <p>The same age, consent and permission checks apply to all users. There is no reviewer-only behavior. The service was separately verified as foreground type <code>connectedDevice</code> with notification 4101 when enabled, and absent after background operation was disabled and the app left the screen.</p>
+  <p>Operator and review contact: OVJECT (이준영), <a href="mailto:arutha84@gmail.com">arutha84@gmail.com</a>.</p>
+  <p><a href="index.html">Privacy policy</a> · <a href="support.html">Support</a></p>
+</main></body>
+</html>
