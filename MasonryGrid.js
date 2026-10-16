@@ -98,6 +98,8 @@ export class MasonryGrid {
       this.options.onLog(`FOUND_MANIFEST_HEADER [${fileList.length} OBJECTS] ... OK`);
       this.options.onLog("DECRYPTING_DATA_STREAMS [MD_parse]...");
 
+      // Fetch in parallel, but build the cards in manifest order so the grid
+      // (and the category menu) come out the same on every load.
       const fetchPromises = fileList.map(file => {
         const fileUrl = new URL(file, baseUrl).href;
         return fetch(fileUrl)
@@ -105,17 +107,22 @@ export class MasonryGrid {
             if (!response.ok) throw new Error(`Failed to load ${file}`);
             return response.text();
           })
-          .then(markdown => {
-            const { metadata, content } = parseFrontMatter(markdown);
-            metadata.fileName = file.split('/').pop().replace('.md', '');
-            this.createGridItem(metadata, content);
-            if (metadata.category) {
-              this.categories.add(metadata.category);
-            }
-          })
-          .catch(error => console.error('Error loading grid item:', error));
+          .then(markdown => ({ file, markdown }))
+          .catch(error => {
+            console.error('Error loading grid item:', error);
+            return null;
+          });
       });
-      await Promise.all(fetchPromises);
+      const loaded = await Promise.all(fetchPromises);
+      loaded.forEach(entry => {
+        if (!entry) return;
+        const { metadata, content } = parseFrontMatter(entry.markdown);
+        metadata.fileName = entry.file.split('/').pop().replace('.md', '');
+        this.createGridItem(metadata, content);
+        if (metadata.category) {
+          this.categories.add(metadata.category);
+        }
+      });
     } catch (error) {
       console.error('Error loading grid items from manifest:', error);
       this.options.onLog(`ERROR: ${error.message}`);
@@ -150,7 +157,7 @@ export class MasonryGrid {
     }
 
     const anchor = document.createElement('a');
-    anchor.href = `#/item/${metadata.fileName}`;
+    anchor.href = `#item/${metadata.fileName}`;
     anchor.className = 'grid-item-link';
     anchor.setAttribute('aria-label', `View details for ${metadata.title}`);
 

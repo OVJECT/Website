@@ -11,6 +11,8 @@ let currentOpenItemId = null;
 
 async function openModal(itemId) {
   if (!itemId) return;
+  // Already showing this item (e.g. a click and a popstate arriving together): nothing to do.
+  if (currentOpenItemId === itemId && modalContainer.classList.contains('visible')) return;
   currentOpenItemId = itemId;
 
   lastFocusedElement = document.activeElement;
@@ -177,6 +179,8 @@ async function openModal(itemId) {
         overlay.classList.add('visible');
         modalContainer.classList.add('visible');
         modalContainer.setAttribute('aria-hidden', 'false');
+        // Move focus into the scrollable body so arrow / page keys scroll the modal.
+        modalContent.focus({ preventScroll: true });
         
         // Force Reflow
         modalContainer.offsetHeight;
@@ -192,7 +196,7 @@ async function openModal(itemId) {
                  modalContainer.style.opacity = '';
             }
             modalContainer.removeEventListener('transitionend', cleanup);
-            modalContainer.focus();
+            modalContent.focus({ preventScroll: true });
         };
         modalContainer.addEventListener('transitionend', cleanup);
     });
@@ -242,7 +246,11 @@ async function openModal(itemId) {
 function closeModal() {
   if (!modalContainer.classList.contains('visible')) return;
 
-  history.pushState("", document.title, window.location.pathname + window.location.search);
+  // Only rewrite the URL when the hash still points at an item (closed via UI).
+  // When closing because of back/forward navigation the hash is already gone.
+  if (/^#\/?item\//.test(window.location.hash)) {
+    history.pushState("", document.title, window.location.pathname + window.location.search);
+  }
   
   document.body.classList.remove('modal-open');
   overlay.classList.remove('visible');
@@ -272,8 +280,8 @@ function closeModal() {
         const itemCenterX = itemRect.left + itemRect.width / 2;
         const itemCenterY = itemRect.top + itemRect.height / 2;
         
-        const translateX = itemCenterX - modalCenterX;
-        const translateY = itemCenterY - modalCenterY;
+        const translateX = itemCenterX - headerCenterX;
+        const translateY = itemCenterY - headerCenterY;
         
         // Apply Transition
         modalContainer.style.transition = 'transform 0.6s cubic-bezier(0.2, 0, 0.2, 1), opacity 0.6s ease';
@@ -321,7 +329,7 @@ function closeModal() {
 
 function handleStateChange() {
   const hash = window.location.hash;
-  const match = hash.match(/^#item\/(.+)/);
+  const match = hash.match(/^#\/?item\/(.+)/);
   if (match) {
     openModal(match[1]);
   } else {

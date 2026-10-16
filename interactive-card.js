@@ -25,7 +25,6 @@ export class InteractiveElement {
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
     this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleMouseUp = this.handleMouseUp.bind(this);
-    this.handleClick = this.handleClick.bind(this);
     this.handleTouchStart = this.handleTouchStart.bind(this);
     this.handleTouchMove = this.handleTouchMove.bind(this);
     this.handleTouchEnd = this.handleTouchEnd.bind(this);
@@ -70,7 +69,6 @@ export class InteractiveElement {
     this.element.addEventListener('mouseleave', this.handleMouseLeave, passive);
     this.element.addEventListener('mousedown', this.handleMouseDown, passive);
     this.element.addEventListener('mouseup', this.handleMouseUp, passive);
-    this.element.addEventListener('click', this.handleClick);
     this.element.addEventListener('touchstart', this.handleTouchStart, passive);
     this.element.addEventListener('touchmove', this.handleTouchMove, passive);
     this.element.addEventListener('touchend', this.handleTouchEnd, passive);
@@ -316,13 +314,6 @@ export class InteractiveElement {
     this.startAnimation();
   }
 
-  handleClick() {
-    const itemId = this.element.dataset.id;
-    if (itemId) {
-      window.location.hash = itemId;
-    }
-  }
-
   destroy() {
     const events = [
       ['mousemove', this.handleMouseMove],
@@ -330,7 +321,6 @@ export class InteractiveElement {
       ['mouseleave', this.handleMouseLeave],
       ['mousedown', this.handleMouseDown],
       ['mouseup', this.handleMouseUp],
-      ['click', this.handleClick],
       ['touchstart', this.handleTouchStart],
       ['touchmove', this.handleTouchMove],
       ['touchend', this.handleTouchEnd]

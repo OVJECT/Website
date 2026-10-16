@@ -4,7 +4,6 @@ import { KeyboardNavigation } from './keyboard-navigation.js';
 import { initModalRouting } from './modal.js';
 import { initLazyLoader } from './lazyloader.js';
 import { DotRenderer } from './DotRenderer.js';
-import { TiltEffect } from './TiltEffect.js';
 
 
 // Fetches markdown metadata and applies custom colors to tags
@@ -57,6 +56,21 @@ const BootConsole = {
     // Initial Logs
     this.log("BIOS_CHECK [0x0000] ... OK");
     this.log("INIT_KERNEL_MODULES ... START");
+
+    // Fail-safe: never leave the black boot screen up if initialization stalls.
+    this.safetyTimer = setTimeout(() => this.dismiss(), 8000);
+  },
+
+  // Remove the overlay right away (init failed or took too long).
+  dismiss() {
+    if (!this.isActive || !this.overlay) return;
+    this.isActive = false;
+    this.queue = [];
+    clearTimeout(this.safetyTimer);
+    const overlay = this.overlay;
+    overlay.style.transition = 'opacity 0.3s ease';
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 300);
   },
 
   log(message) {
@@ -103,6 +117,8 @@ const BootConsole = {
   },
 
   finish() {
+    if (!this.isActive) return;
+    clearTimeout(this.safetyTimer);
     this.log("EXEC_MAIN_THREAD (PID: 1337) ... STARTED");
     this.log("SYSTEM_READY.");
     
@@ -235,5 +251,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     setInterval(updateClock, 1000);
 
-  }).catch(error => console.error("Initialization failed:", error));
+  }).catch(error => {
+    console.error("Initialization failed:", error);
+    BootConsole.dismiss();
+  });
 });

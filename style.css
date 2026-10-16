@@ -649,6 +649,25 @@ header {
   display: none !important;
 }
 
+/* Keyboard focus (Tab) - visible ring without affecting mouse users */
+.grid-item-link:focus-visible .interactive-wrapper {
+  border-color: var(--color-active);
+  box-shadow: 0 0 0 3px var(--color-active);
+}
+
+.category-button:focus-visible,
+.close-button:focus-visible,
+.cookie-btn:focus-visible,
+#search-input:focus-visible {
+  outline: 2px solid var(--color-active);
+  outline-offset: 2px;
+}
+
+/* The modal body receives focus on open so arrow / page keys scroll it */
+.modal-content:focus {
+  outline: none;
+}
+
 /* Custom styling for empty cards (fallback gradients with dot pattern) */
 .grid-item[data-id="kairo"] .media-container {
     background: 
@@ -846,6 +865,14 @@ header {
 
   .category-menu {
     gap: 4px;
+    min-width: 0;
+    overflow-x: auto; /* Many categories: scroll instead of overflowing the header */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .category-menu::-webkit-scrollbar {
+    display: none;
   }
 
   .category-button {

@@ -1,92 +1,73 @@
+const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"]';
+const ARROW_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+
 export class KeyboardNavigation {
   constructor() {
-    this.gridItems = [];
-    this.currentIndex = -1;
+    this.currentItem = null;
     this.init();
   }
 
   init() {
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
-    // Use a MutationObserver to update the list of items when the grid is filtered
-    const observer = new MutationObserver(() => this.updateGridItems());
+    // Drop the highlight when the set of cards changes.
     const gridInner = document.querySelector('.grid-inner');
     if (gridInner) {
+      const observer = new MutationObserver(() => this.clearFocus());
       observer.observe(gridInner, { childList: true });
     }
-    this.updateGridItems();
   }
 
-  updateGridItems() {
-    this.gridItems = Array.from(document.querySelectorAll('.grid-item'));
-    // Sort items by their visual position (top, then left)
-    this.gridItems.sort((a, b) => {
-      const topA = parseFloat(a.style.top);
-      const topB = parseFloat(b.style.top);
-      if (topA !== topB) {
-        return topA - topB;
-      }
-      const leftA = parseFloat(a.style.left);
-      const leftB = parseFloat(b.style.left);
-      return leftA - leftB;
+  // Visible cards in visual order (top, then left). Filtered-out cards are skipped.
+  getVisibleItems() {
+    return Array.from(document.querySelectorAll('.grid-item:not(.hidden-item)')).sort((a, b) => {
+      const topA = parseFloat(a.style.top) || 0;
+      const topB = parseFloat(b.style.top) || 0;
+      if (topA !== topB) return topA - topB;
+      return (parseFloat(a.style.left) || 0) - (parseFloat(b.style.left) || 0);
     });
-    this.currentIndex = -1;
-    this.removeFocus();
   }
 
   handleKeyDown(e) {
-    if (document.body.classList.contains('detail-view-active')) return;
+    // Leave the keys alone while a modal is open or the user is typing (e.g. the search box).
+    if (document.body.classList.contains('modal-open') || document.body.classList.contains('detail-view-active')) return;
+    if (e.target && e.target.closest && e.target.closest(EDITABLE_SELECTOR)) return;
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
 
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+    if (ARROW_KEYS.includes(e.key)) {
+      const items = this.getVisibleItems();
+      if (items.length === 0) return;
       e.preventDefault();
-      if (this.gridItems.length === 0) return;
 
-      if (this.currentIndex === -1) {
-        this.currentIndex = 0;
+      let index = items.indexOf(this.currentItem);
+      if (index === -1) {
+        index = 0;
       } else {
-        switch (e.key) {
-          case 'ArrowDown':
-            this.moveFocus(1);
-            break;
-          case 'ArrowUp':
-            this.moveFocus(-1);
-            break;
-          case 'ArrowRight':
-            this.moveFocus(1);
-            break;
-          case 'ArrowLeft':
-            this.moveFocus(-1);
-            break;
-        }
+        const direction = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : -1;
+        index = (index + direction + items.length) % items.length;
       }
-      this.setFocus();
+      this.setFocus(items[index]);
+      return;
     }
 
-    if (e.key === 'Enter' && this.currentIndex !== -1) {
+    if (e.key === 'Enter' && this.currentItem && !this.currentItem.classList.contains('hidden-item')) {
       e.preventDefault();
-      this.gridItems[this.currentIndex].querySelector('.interactive-wrapper').click();
+      const wrapper = this.currentItem.querySelector('.interactive-wrapper');
+      if (wrapper) wrapper.click();
     }
   }
 
-  moveFocus(direction) {
-    this.currentIndex = (this.currentIndex + direction + this.gridItems.length) % this.gridItems.length;
+  setFocus(item) {
+    this.clearFocus();
+    this.currentItem = item;
+    const wrapper = item.querySelector('.interactive-wrapper');
+    if (wrapper) wrapper.style.boxShadow = '0 0 0 3px var(--color-active)';
+    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  setFocus() {
-    this.removeFocus();
-    const item = this.gridItems[this.currentIndex];
-    if (item) {
-      const wrapper = item.querySelector('.interactive-wrapper');
-      wrapper.style.boxShadow = '0 0 0 3px var(--primary-color)';
-      item.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }
-
-  removeFocus() {
-    this.gridItems.forEach(item => {
-      const wrapper = item.querySelector('.interactive-wrapper');
-      if (wrapper) {
-        wrapper.style.boxShadow = '';
-      }
+  clearFocus() {
+    document.querySelectorAll('.grid-item .interactive-wrapper').forEach(wrapper => {
+      wrapper.style.boxShadow = '';
     });
+    this.currentItem = null;
   }
 }
