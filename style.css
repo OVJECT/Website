@@ -352,7 +352,7 @@ header {
 
 .grid-item-link:hover .interactive-wrapper {
   border-color: var(--color-text);
-  /* transform: translateY(-2px); handled by TiltEffect now */
+  /* transform: translateY(-2px); handled by the card tilt in interactive-card.js */
   box-shadow: 0 10px 30px rgba(255, 59, 0, 0.2); /* More dramatic shadow */
 }
 

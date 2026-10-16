@@ -147,6 +147,9 @@ export class MasonryGrid {
     if (metadata.coverImage) {
         item.dataset.coverImage = metadata.coverImage;
     }
+    if (metadata.coverPoster) {
+        item.dataset.coverPoster = metadata.coverPoster;
+    }
 
     if (metadata.size) {
         const sizes = metadata.size.toLowerCase().split(' ');
@@ -171,6 +174,10 @@ export class MasonryGrid {
         if (isVideo) {
             wrapper.classList.add('lazy-video');
             wrapper.dataset.video = metadata.coverImage;
+            // Still frame shown while the video loads, or if autoplay is blocked.
+            if (metadata.coverPoster) {
+                wrapper.dataset.poster = metadata.coverPoster;
+            }
         } else {
             wrapper.classList.add('lazy-bg');
             wrapper.dataset.bg = metadata.coverImage;

@@ -48,9 +48,22 @@ export function initLazyLoader(selector = 'img.lazy-load, .lazy-bg, .lazy-video'
         } 
         else if (element.classList.contains('lazy-video')) {
            const videoSrc = element.dataset.video;
+           const posterSrc = element.dataset.poster;
            if (videoSrc) {
+               // Put the still frame up right away so the card is never blank
+               // (e.g. autoplay blocked by Low Power Mode or a data saver).
+               if (posterSrc) {
+                   const poster = new Image();
+                   poster.src = posterSrc;
+                   poster.onload = () => {
+                       element.style.backgroundImage = `url('${posterSrc}')`;
+                       element.classList.add('loaded');
+                   };
+               }
+
                const video = document.createElement('video');
                video.src = videoSrc;
+               if (posterSrc) video.poster = posterSrc;
                video.muted = true;
                video.loop = true;
                video.playsInline = true; // Critical for iOS
@@ -76,6 +89,7 @@ export function initLazyLoader(selector = 'img.lazy-load, .lazy-bg, .lazy-video'
                // Start observing for playback control
                playbackObserver.observe(video);
                element.removeAttribute('data-video');
+               element.removeAttribute('data-poster');
            }
            observer.unobserve(element);
         }

@@ -36,7 +36,8 @@ async function openModal(itemId) {
     if (coverImageUrl) {
         if (coverImageUrl.toLowerCase().endsWith('.mp4')) {
             isVideo = true;
-            let posterAttr = '';
+            // Still frame as the fallback poster; the live frame below wins when available.
+            let posterAttr = itemElement.dataset.coverPoster ? `poster="${itemElement.dataset.coverPoster}"` : '';
             const sourceVideo = itemElement.querySelector('video');
             if (sourceVideo && sourceVideo.readyState >= 2) {
                 try {
