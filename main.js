@@ -1,258 +1,136 @@
-import { MasonryGrid } from './MasonryGrid.js';
+import { ProjectGrid } from './grid.js';
 import { initInteractiveElements } from './interactive-card.js';
 import { KeyboardNavigation } from './keyboard-navigation.js';
 import { initModalRouting } from './modal.js';
 import { initLazyLoader } from './lazyloader.js';
-import { DotRenderer } from './DotRenderer.js';
+import { getCurrentLang } from './i18n.js';
 
-
-// Fetches markdown metadata and applies custom colors to tags
-async function applyTagColors() {
-  // ... (Keep existing code but it's commented out or unused)
-}
-
-// Boot Console Manager
-const BootConsole = {
-  overlay: null,
-  container: null,
-  queue: [],
-  isTyping: false,
-  isActive: false,
-
-  init() {
-    this.isActive = true;
-    this.overlay = document.createElement('div');
-    this.overlay.id = 'boot-overlay';
-    Object.assign(this.overlay.style, {
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      width: '100%',
-      height: '100%',
-      background: '#000',
-      color: '#ff3b00',
-      zIndex: '9999',
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'flex-end',
-      padding: '2rem',
-      fontFamily: "'JetBrains Mono', monospace",
-      fontSize: '1rem',
-      flexDirection: 'column',
-      pointerEvents: 'none'
-    });
-    
-    document.body.appendChild(this.overlay);
-    this.container = document.createElement('div');
-    Object.assign(this.container.style, {
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start', // Align text to left
-        overflowY: 'hidden'
-    });
-    this.overlay.appendChild(this.container);
-
-    // Initial Logs
-    this.log("BIOS_CHECK [0x0000] ... OK");
-    this.log("INIT_KERNEL_MODULES ... START");
-
-    // Fail-safe: never leave the black boot screen up if initialization stalls.
-    this.safetyTimer = setTimeout(() => this.dismiss(), 8000);
+// Page copy. Project descriptions are localised in the feed files; this covers the chrome.
+const COPY = {
+  en: {
+    'hero.eyebrow': 'Creative lab · Est. 2025',
+    'hero.title': 'Digital objects for everyday life',
+    'hero.lead': 'OVJECT is a creative lab making playful apps and games with the feel of real things. Tap, snap, pop, and keep them close.',
+    'hero.about': 'About the studio',
+    'work.title': 'Work',
+    'search.placeholder': 'Search',
+    'footer.tagline': 'Digital objects for everyday life.',
+    'cookie.text': 'We use cookies to analyze traffic and improve your experience.',
+    'cookie.ok': 'OK',
+    'cookie.policy': 'Privacy Policy',
+    'cookie.policyHref': 'Privacy Policy.html'
   },
-
-  // Remove the overlay right away (init failed or took too long).
-  dismiss() {
-    if (!this.isActive || !this.overlay) return;
-    this.isActive = false;
-    this.queue = [];
-    clearTimeout(this.safetyTimer);
-    const overlay = this.overlay;
-    overlay.style.transition = 'opacity 0.3s ease';
-    overlay.style.opacity = '0';
-    setTimeout(() => overlay.remove(), 300);
-  },
-
-  log(message) {
-    if (!this.isActive) return;
-    this.queue.push(message);
-    this.processQueue();
-  },
-
-  async processQueue() {
-    if (this.isTyping || this.queue.length === 0) return;
-
-    this.isTyping = true;
-    const msg = this.queue.shift();
-    await this.typeLine(msg);
-    this.isTyping = false;
-    this.processQueue();
-  },
-
-  typeLine(text) {
-    return new Promise(resolve => {
-      const div = document.createElement('div');
-      div.textContent = "> ";
-      // Prepend to keep latest at bottom if flex-end, but we are using column top-down
-      // Actually, standard terminal adds to bottom. 
-      // Let's scroll to bottom if needed.
-      this.container.appendChild(div);
-      
-      let i = 0;
-      // Ultra fast typing
-      const speed = 0.5 + Math.random() * 3; 
-      
-      const interval = setInterval(() => {
-        div.textContent += text.charAt(i);
-        i++;
-        if (i >= text.length) {
-          clearInterval(interval);
-          // Minimal pause after line completion
-          setTimeout(resolve, 5); 
-        }
-        // Auto scroll
-        // this.overlay.scrollTop = this.overlay.scrollHeight; 
-      }, speed);
-    });
-  },
-
-  finish() {
-    if (!this.isActive) return;
-    clearTimeout(this.safetyTimer);
-    this.log("EXEC_MAIN_THREAD (PID: 1337) ... STARTED");
-    this.log("SYSTEM_READY.");
-    
-    // Wait for the queue to empty before fading out
-    const checkQueue = setInterval(() => {
-        if (this.queue.length === 0 && !this.isTyping) {
-            clearInterval(checkQueue);
-            setTimeout(() => {
-                this.overlay.style.opacity = '0';
-                this.overlay.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => {
-                    this.overlay.remove();
-                    this.isActive = false;
-                }, 300);
-            }, 100);
-        }
-    }, 100);
+  ko: {
+    'hero.eyebrow': '크리에이티브 랩 · Est. 2025',
+    'hero.title': '일상에 공명하는 디지털 오브제',
+    'hero.lead': 'OVJECT는 실제 물건을 만지는 듯한 감각의 앱과 게임을 만드는 크리에이티브 랩입니다. 탭, 촵, 뿅. 늘 곁에 두세요.',
+    'hero.about': '스튜디오 소개',
+    'work.title': '프로젝트',
+    'search.placeholder': '검색',
+    'footer.tagline': '일상에 공명하는 디지털 오브제.',
+    'cookie.text': '트래픽 분석과 경험 개선을 위해 쿠키를 사용합니다.',
+    'cookie.ok': '확인',
+    'cookie.policy': '개인정보처리방침',
+    'cookie.policyHref': 'privacy_policy.html'
   }
 };
 
-function updateClock() {
-  const clockEl = document.getElementById('clock');
-  if (clockEl) {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('en-GB', { hour12: false }); // HH:MM:SS
-    clockEl.textContent = timeString;
-  }
+function t(lang, key) {
+  return (COPY[lang] && COPY[lang][key]) || COPY.en[key] || '';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Run boot sequence only if not hash navigation AND not run in this session yet
-  const bootRun = sessionStorage.getItem('boot_sequence_run');
-  if (!window.location.hash && !bootRun) {
-    BootConsole.init();
-    sessionStorage.setItem('boot_sequence_run', 'true');
-  }
+function applyCopy(lang) {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(lang, el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(lang, el.dataset.i18nPlaceholder);
+  });
+}
 
-  // Cookie Consent Toast
-  const checkCookieConsent = () => {
-    if (!localStorage.getItem('cookie_consent')) {
-      const toast = document.createElement('div');
-      toast.id = 'cookie-toast';
-      toast.innerHTML = `
-        <div class="cookie-text">
-          We use cookies to analyze traffic and improve your experience.
-        </div>
-        <div class="cookie-actions">
-          <button id="cookie-accept" class="cookie-btn">OK</button>
-          <a href="Privacy Policy.html" target="_blank" class="cookie-link">Privacy Policy</a>
-        </div>
-      `;
-      document.body.appendChild(toast);
-      
-      // Animate in
-      requestAnimationFrame(() => {
-        toast.classList.add('visible');
-      });
+// The hero tiles drift slightly with the pointer, further for the tiles in front.
+function initHeroParallax() {
+  const cluster = document.querySelector('.hero-objects');
+  if (!cluster) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!window.matchMedia('(pointer: fine)').matches) return;
 
-      document.getElementById('cookie-accept').addEventListener('click', () => {
-        localStorage.setItem('cookie_consent', 'true');
-        toast.classList.remove('visible');
-        setTimeout(() => toast.remove(), 500);
-      });
-    }
-  };
-  
-  // Delay cookie toast slightly to let intro finish
-  setTimeout(checkCookieConsent, 2000);
+  const objects = Array.from(cluster.querySelectorAll('.obj'));
+  const travel = [8, 14, 22]; // px per unit of pointer offset, back to front
+  let targetX = 0, targetY = 0, x = 0, y = 0, frame = null;
 
-  // Initialize Dot Matrix Background
-  const dotRenderer = new DotRenderer('#intro-canvas', '.intro-section');
-  
-  // Use a function to handle path resolution
-  const getAssetPath = (path) => {
-      // Simple relative path handling
-      return path;
+  const tick = () => {
+    x += (targetX - x) * 0.08;
+    y += (targetY - y) * 0.08;
+    objects.forEach((obj, i) => {
+      const d = travel[i] ?? 12;
+      obj.style.setProperty('--px', `${(x * d).toFixed(2)}px`);
+      obj.style.setProperty('--py', `${(y * d).toFixed(2)}px`);
+    });
+    const settled = Math.abs(targetX - x) < 0.002 && Math.abs(targetY - y) < 0.002;
+    frame = settled ? null : requestAnimationFrame(tick);
   };
 
-  const bgImages = [
-    'feed/assets/kairo.png',
-    'feed/assets/pita_field.png',
-    'feed/assets/pita_game.gif',
-    'feed/assets/random.png'
-  ];
-  
-  if (bgImages.length > 0) {
-    const randomImg = bgImages[Math.floor(Math.random() * bgImages.length)];
-    dotRenderer.loadImage(randomImg).catch(e => console.warn('DotRenderer failed to load image:', e));
+  window.addEventListener('pointermove', e => {
+    const rect = cluster.getBoundingClientRect();
+    targetX = ((e.clientX - (rect.left + rect.width / 2)) / window.innerWidth) * 2;
+    targetY = ((e.clientY - (rect.top + rect.height / 2)) / window.innerHeight) * 2;
+    if (!frame) frame = requestAnimationFrame(tick);
+  }, { passive: true });
+}
+
+function initCookieToast(lang) {
+  try {
+    if (localStorage.getItem('cookie_consent')) return;
+  } catch (e) {
+    return;
   }
 
-  const grid = new MasonryGrid('.grid-container', '.grid-item', {
-    gutter: 0.8,
-    containerPadding: 2, 
-    minWidth: '20rem',
-    maxWidth: '21rem',
-    initInteractiveElements: initInteractiveElements,
-    onLog: (msg) => BootConsole.log(msg) // Hook up logging
+  const toast = document.createElement('div');
+  toast.id = 'cookie-toast';
+  toast.setAttribute('role', 'status');
+  toast.innerHTML = `
+    <div class="cookie-text"></div>
+    <div class="cookie-actions">
+      <button id="cookie-accept" class="cookie-btn" type="button"></button>
+      <a class="cookie-link" target="_blank" rel="noopener"></a>
+    </div>`;
+  toast.querySelector('.cookie-text').textContent = t(lang, 'cookie.text');
+  toast.querySelector('#cookie-accept').textContent = t(lang, 'cookie.ok');
+  const link = toast.querySelector('.cookie-link');
+  link.textContent = t(lang, 'cookie.policy');
+  link.href = t(lang, 'cookie.policyHref');
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => toast.classList.add('visible'));
+
+  toast.querySelector('#cookie-accept').addEventListener('click', () => {
+    try { localStorage.setItem('cookie_consent', 'true'); } catch (e) { /* storage unavailable */ }
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 500);
   });
+}
 
-  grid.init().then(async () => {
-    initInteractiveElements();
-    initLazyLoader();
-    new KeyboardNavigation();
-    initModalRouting();
-    
-    // Signal boot completion
-    if (BootConsole.isActive) {
-        BootConsole.finish();
-    }
-    
-    // Add Footer System Status
-    const footer = document.createElement('footer');
-    footer.style.textAlign = 'center';
-    footer.style.padding = '2rem';
-    footer.style.color = '#333';
-    footer.style.fontFamily = "'JetBrains Mono', monospace";
-    footer.style.fontSize = '0.8rem';
-    footer.style.marginTop = '0';
-    footer.style.borderTop = '1px solid #111';
-    footer.innerHTML = `
-      <div style="margin-bottom: 0.5rem;">SYSTEM STATUS: ONLINE ●</div>
-      <div style="margin-bottom: 0.5rem;">
-        <a href="Privacy Policy.html" target="_blank" style="color: #666; text-decoration: none; border-bottom: 1px dotted #666;">PRIVACY POLICY</a>
-      </div>
-      <div>© ${new Date().getFullYear()} OVJECT INC. ALL RIGHTS RESERVED.</div>
-    `;
-    document.body.appendChild(footer);
+document.addEventListener('DOMContentLoaded', async () => {
+  const lang = getCurrentLang();
+  document.documentElement.lang = lang;
+  applyCopy(lang);
+  initHeroParallax();
 
-    // Start Status Clock
-    updateClock();
-    setInterval(updateClock, 1000);
+  const year = document.getElementById('year');
+  if (year) year.textContent = String(new Date().getFullYear());
 
-  }).catch(error => {
-    console.error("Initialization failed:", error);
-    BootConsole.dismiss();
-  });
+  setTimeout(() => initCookieToast(lang), 1500);
+
+  const grid = new ProjectGrid('.grid-container');
+  try {
+    await grid.init();
+  } catch (error) {
+    console.error('Could not load the project feed:', error);
+  }
+
+  initInteractiveElements();
+  initLazyLoader();
+  new KeyboardNavigation();
+  initModalRouting();
 });

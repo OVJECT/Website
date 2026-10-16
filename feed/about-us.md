@@ -1,7 +1,7 @@
 ---
 title: "About OVJECT"
 category: "BRAND"
-size: "Wx1"
+size: "Wx2"
 backgroundColor: "#000"
 coverImage: "img/ovject.png"
 description: "We design digital objects that resonate with your daily life."

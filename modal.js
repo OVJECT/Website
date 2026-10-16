@@ -4,7 +4,6 @@ const modalContainer = document.getElementById('modal-container');
 const modalContent = modalContainer.querySelector('.modal-content');
 const closeButton = modalContainer.querySelector('.close-button');
 const overlay = document.getElementById('overlay');
-const gridContainer = document.querySelector('.grid-container');
 
 let lastFocusedElement;
 let currentOpenItemId = null;
@@ -25,8 +24,7 @@ async function openModal(itemId) {
     modalContainer.style.display = 'block';
     modalContainer.style.visibility = 'hidden';
     modalContainer.style.opacity = '0';
-    modalContainer.style.background = '#000000';
-    modalContainer.classList.add('dark-theme-modal');
+    modalContainer.style.setProperty('--card-color', itemElement.dataset.backgroundColor || '#1a1c20');
 
     // --- INSTANT RENDER START (Render BEFORE measuring) ---
     const coverImageUrl = itemElement.dataset.coverImage || null;
@@ -55,7 +53,7 @@ async function openModal(itemId) {
             headerImage = `<img src="${coverImageUrl}" alt="" class="modal-header-image">`;
         }
     } else {
-        const title = (itemElement.querySelector('.item-title')?.textContent || itemId).trim();
+        const title = (itemElement.querySelector('.card-title')?.textContent || itemId).trim();
         const initial = title.charAt(0).toUpperCase();
         headerImage = `
             <div class="modal-header-placeholder" data-id="${itemId}">
@@ -78,7 +76,8 @@ async function openModal(itemId) {
     // However, since we just set innerHTML, it's synchronous.
     // But layout might need a force reflow.
     
-    const itemRect = itemElement.getBoundingClientRect();
+    const flipSource = itemElement.querySelector('.card-media') || itemElement;
+    const itemRect = flipSource.getBoundingClientRect();
     let modalHeaderRect = null;
     const modalHeaderEl = modalContainer.querySelector('.modal-header-image') || modalContainer.querySelector('.modal-header-placeholder');
     
@@ -262,7 +261,8 @@ function closeModal() {
   if (currentOpenItemId) {
       const itemElement = document.querySelector(`.grid-item[data-id="${currentOpenItemId}"]`);
       if (itemElement) {
-        const itemRect = itemElement.getBoundingClientRect();
+        const flipSource = itemElement.querySelector('.card-media') || itemElement;
+        const itemRect = flipSource.getBoundingClientRect();
         const modalRect = modalContainer.getBoundingClientRect();
         
         // Find header image in modal again to reverse accurately
@@ -299,8 +299,7 @@ function closeModal() {
 
   const cleanup = () => {
     modalContainer.style.display = 'none';
-    modalContainer.style.background = '';
-    modalContainer.classList.remove('dark-theme-modal');
+    modalContainer.style.removeProperty('--card-color');
     modalContent.innerHTML = '';
     modalContainer.style.transform = '';
     modalContainer.style.transition = '';
@@ -339,16 +338,17 @@ function handleStateChange() {
 }
 
 export function initModalRouting() {
-  gridContainer.addEventListener('click', (e) => {
-    const item = e.target.closest('.grid-item[data-id]');
-    if (item) {
-      e.preventDefault();
-      const itemId = item.dataset.id;
-      if (window.location.hash !== `#item/${itemId}`) {
-        history.pushState({ itemId }, ``, `#item/${itemId}`);
-        openModal(itemId);
-      }
+  // Any link to #item/<id> (grid cards, hero tiles, footer) opens that item in the modal.
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href^="#item/"]');
+    if (!link) return;
+    e.preventDefault();
+    const itemId = link.getAttribute('href').slice('#item/'.length);
+    if (!itemId) return;
+    if (window.location.hash !== `#item/${itemId}`) {
+      history.pushState({ itemId }, ``, `#item/${itemId}`);
     }
+    openModal(itemId);
   });
 
   closeButton.addEventListener('click', closeModal);

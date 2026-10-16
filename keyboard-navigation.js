@@ -1,35 +1,21 @@
 const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"]';
 const ARROW_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 
+// Arrow keys move a highlight through the visible cards; Enter opens the highlighted one.
 export class KeyboardNavigation {
   constructor() {
     this.currentItem = null;
-    this.init();
-  }
-
-  init() {
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
-    // Drop the highlight when the set of cards changes.
-    const gridInner = document.querySelector('.grid-inner');
-    if (gridInner) {
-      const observer = new MutationObserver(() => this.clearFocus());
-      observer.observe(gridInner, { childList: true });
-    }
   }
 
-  // Visible cards in visual order (top, then left). Filtered-out cards are skipped.
+  // Cards in reading order, skipping the ones a filter has hidden.
   getVisibleItems() {
-    return Array.from(document.querySelectorAll('.grid-item:not(.hidden-item)')).sort((a, b) => {
-      const topA = parseFloat(a.style.top) || 0;
-      const topB = parseFloat(b.style.top) || 0;
-      if (topA !== topB) return topA - topB;
-      return (parseFloat(a.style.left) || 0) - (parseFloat(b.style.left) || 0);
-    });
+    return Array.from(document.querySelectorAll('.grid-item:not([hidden])'));
   }
 
   handleKeyDown(e) {
     // Leave the keys alone while a modal is open or the user is typing (e.g. the search box).
-    if (document.body.classList.contains('modal-open') || document.body.classList.contains('detail-view-active')) return;
+    if (document.body.classList.contains('modal-open')) return;
     if (e.target && e.target.closest && e.target.closest(EDITABLE_SELECTOR)) return;
     if (e.altKey || e.ctrlKey || e.metaKey) return;
 
@@ -49,25 +35,22 @@ export class KeyboardNavigation {
       return;
     }
 
-    if (e.key === 'Enter' && this.currentItem && !this.currentItem.classList.contains('hidden-item')) {
+    if (e.key === 'Enter' && this.currentItem && !this.currentItem.hidden) {
       e.preventDefault();
-      const wrapper = this.currentItem.querySelector('.interactive-wrapper');
-      if (wrapper) wrapper.click();
+      const link = this.currentItem.querySelector('.grid-item-link');
+      if (link) link.click();
     }
   }
 
   setFocus(item) {
     this.clearFocus();
     this.currentItem = item;
-    const wrapper = item.querySelector('.interactive-wrapper');
-    if (wrapper) wrapper.style.boxShadow = '0 0 0 3px var(--color-active)';
+    item.classList.add('kb-focus');
     item.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   clearFocus() {
-    document.querySelectorAll('.grid-item .interactive-wrapper').forEach(wrapper => {
-      wrapper.style.boxShadow = '';
-    });
+    document.querySelectorAll('.grid-item.kb-focus').forEach(item => item.classList.remove('kb-focus'));
     this.currentItem = null;
   }
 }

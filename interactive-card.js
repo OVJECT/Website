@@ -348,9 +348,9 @@ export const initInteractiveElements = () => {
   document.querySelectorAll('.grid-item').forEach(card => {
     new InteractiveElement(card, {
         touchMoveTolerance: 10,
-        maxTilt: 10,
-        perspective: 2500,
-        scale: 0.97,
+        maxTilt: 6,
+        perspective: 1600,
+        scale: 0.985,
         ease: 0.1,
         scrollThreshold: 5,
         touchDelay: 100

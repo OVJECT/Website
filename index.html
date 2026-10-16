@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>OVJECT</title>
-  <meta name="description" content="OVJECT Portfolio - Interactive masonry grid showcasing games, apps, and design projects">
-  <meta name="theme-color" content="#000000">
+  <meta name="description" content="OVJECT is a creative lab making playful apps and games with the feel of real things: Croco Roulette, PITAPATO, KAIRO, Random TapTap and more.">
+  <meta name="theme-color" content="#eceef2">
   <link rel="canonical" href="https://ovject.com/">
   <link rel="icon" type="image/png" sizes="512x512" href="img/512.png">
   <link rel="apple-touch-icon" href="img/icon180.png">
+  <link rel="preload" href="webfonts/WorkSans-Black.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="webfonts/WorkSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
 
   <!-- Social sharing -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://ovject.com/">
   <meta property="og:title" content="OVJECT">
-  <meta property="og:description" content="OVJECT Portfolio - Interactive masonry grid showcasing games, apps, and design projects">
+  <meta property="og:description" content="OVJECT is a creative lab making playful apps and games with the feel of real things.">
   <meta property="og:image" content="https://ovject.com/img/ogLOGO.png">
   <meta property="og:image:width" content="800">
   <meta property="og:image:height" content="400">
@@ -39,41 +41,81 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="overlay"></div>
+  <a class="skip-link" href="#work">Skip to projects</a>
 
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="./" aria-label="OVJECT home">
+        <img class="brand-mark" src="img/512.png" alt="" width="28" height="28">
+        <span class="brand-wordmark">OVJECT<span class="brand-tm">™</span></span>
+      </a>
+      <div class="search-container">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path></svg>
+        <input type="search" id="search-input" placeholder="Search" aria-label="Search projects" autocomplete="off" data-i18n-placeholder="search.placeholder">
+      </div>
+      <nav class="category-menu" aria-label="Filter by category">
+        <button class="category-button active" data-category="all" aria-pressed="true">All</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <p class="eyebrow" data-i18n="hero.eyebrow">Creative lab · Est. 2025</p>
+          <h1 class="hero-title" id="hero-title"><span data-i18n="hero.title">Digital objects for everyday life</span><span class="accent">.</span></h1>
+          <p class="hero-lead" data-i18n="hero.lead">OVJECT is a creative lab making playful apps and games with the feel of real things. Tap, snap, pop, and keep them close.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="https://apps.apple.com/us/developer/junyoung-lee/id1501486371" target="_blank" rel="noopener">App Store</a>
+            <a class="button button-primary" href="https://play.google.com/store/apps/dev?id=6711883546598969185" target="_blank" rel="noopener">Google Play</a>
+            <a class="button button-ghost" href="#item/about-us" data-i18n="hero.about">About the studio</a>
+          </div>
+        </div>
+        <div class="hero-objects">
+          <a class="obj obj-field" href="#item/field-day" aria-label="Pitapato's Field Day"><img src="feed/assets/pita_field.png" alt=""></a>
+          <a class="obj obj-croco" href="#item/croco-game" aria-label="Croco Roulette"><img src="feed/assets/croco_game_poster.jpg" alt=""></a>
+          <a class="obj obj-kairo" href="#item/kairo" aria-label="KAIRO"><img src="feed/assets/kairo.png" alt=""></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="work" id="work" aria-labelledby="work-title">
+      <div class="work-inner">
+        <div class="section-head">
+          <h2 class="section-title" id="work-title" data-i18n="work.title">Work</h2>
+          <p class="section-note" id="grid-count" aria-live="polite"></p>
+        </div>
+        <div class="grid-container">
+          <div class="grid-inner"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-wordmark">OVJECT<span class="brand-tm">™</span></span>
+        <p class="footer-tagline" data-i18n="footer.tagline">Digital objects for everyday life.</p>
+      </div>
+      <nav class="footer-links" aria-label="Links">
+        <a href="https://apps.apple.com/us/developer/junyoung-lee/id1501486371" target="_blank" rel="noopener">App Store</a>
+        <a href="https://play.google.com/store/apps/dev?id=6711883546598969185" target="_blank" rel="noopener">Google Play</a>
+        <a href="mailto:arutha84@gmail.com">Contact</a>
+        <a href="Privacy Policy.html">Privacy Policy</a>
+        <a href="privacy_policy.html" lang="ko">개인정보처리방침</a>
+      </nav>
+      <p class="footer-legal">© <span id="year">2026</span> OVJECT. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div id="overlay"></div>
   <div id="modal-container" class="modal-container" aria-modal="true" role="dialog" aria-hidden="true">
     <div class="modal-content" tabindex="-1"></div>
-    <button class="close-button" aria-label="Close modal">&times;</button>
+    <button class="close-button" aria-label="Close">&times;</button>
   </div>
-  
-  <header>
-    <!-- <img src="./img/ovject_small.png" alt="OVJECT Logo" class="protect Logo"> -->
-    <span class="Logo-Text">OVJECT<span class="tm-mark">™</span></span>
-    <div class="search-container">
-      <input type="text" id="search-input" placeholder="SEARCH..." aria-label="Search projects">
-    </div>
-    <nav class="category-menu" role="navigation" aria-label="카테고리 필터">
-      <button class="category-button active" data-category="all" aria-pressed="true">All</button>
-    </nav>
-  </header>
-  
-  <section class="intro-section">
-    <canvas id="intro-canvas"></canvas>
-    <div class="intro-text-line">DIGITAL</div>
-    <div class="intro-text-line">ARCHIVE<span style="color: var(--color-active)">.</span></div>
-    <div class="intro-sub">
-      <span>/// EST. 2025</span>
-      <span>SYSTEM_READY</span>
-    </div>
-  </section>
-  
-  <div class="section-divider"></div>
 
-  <main class="grid-container" role="main" aria-label="프로젝트 갤러리">
-    <div class="grid-inner">
-    </div>
-  </main>
-  
   <script src="marked.min.js"></script>
   <script type="module" src="main.js"></script>
 </body>
